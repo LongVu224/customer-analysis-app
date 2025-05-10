@@ -1,17 +1,36 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './index.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import {BrowserRouter, Routes, Route} from 'react-router-dom';
+import {Provider} from 'react-redux';
+import {legacy_createStore as createStore, applyMiddleware, compose, combineReducers} from 'redux';
+import {thunk} from 'redux-thunk';
+import history from './components/helper/History/history';
 import App from './App';
-import reportWebVitals from './reportWebVitals';
+import homeReducer from './routes/Home/Home.reducer';
+
+const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
+
+// Combine reducer to 1 root reducer
+const RootReducer = combineReducers({
+    home: homeReducer
+});
+
+// Configure store with middleware and Redux DevTools
+const store = createStore(RootReducer, composeEnhancers(
+    applyMiddleware(thunk)
+));
+
+const app = (
+    <Provider store={store}>
+        <BrowserRouter history={history}>
+          <Routes>
+            <Route path="/" element={ <App /> }>
+            </Route>
+        </Routes>
+        </BrowserRouter>
+    </Provider>
+)
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
-
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();
+root.render(app);
