@@ -3,7 +3,7 @@ import {connect} from 'react-redux';
 import Home from './Home.component';
 import axios from '../../components/axios/axios';
 import withErrorHandler from '../../components/helper/ErrorHandler/withErrorHandler';
-import * as actions from './actions/Home.send';
+import * as actions from './actions/Home.upload';
 
 const mapStateToProps = state => {
     return {
