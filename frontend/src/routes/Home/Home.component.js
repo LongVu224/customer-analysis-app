@@ -7,8 +7,7 @@ import 'filepond/dist/filepond.min.css'
 
 const Home = (props) => {
     const [title, setTitle] = useState(null)
-    const [text, setText] = useState(null)
-    const [tag, setTag] = useState(null)
+    const [description, setDescription] = useState(null)
     const [files, setFiles] = useState([])
     const [showModal, setShowModal] = useState(false)
 
@@ -16,8 +15,7 @@ const Home = (props) => {
         e.preventDefault();
         const fileData = new FormData()
         fileData.append("title", title)
-        fileData.append("text", text)
-        fileData.append("tag", tag)
+        fileData.append("description", description)
         files.map(file => fileData.append("saleFile", file))
         props.onUploadFile(fileData)
     }
@@ -54,13 +52,7 @@ const Home = (props) => {
             <div className="input-group mb-3 upload-input">
                 <input  type="text" 
                         className="form-control" 
-                        onChange={(e) => setTag(e.target.value)} 
-                        placeholder="Tag" />
-            </div>
-            <div className="input-group mb-3 upload-input">
-                <input  type="text" 
-                        className="form-control" 
-                        onChange={(e) => setText(e.target.value)} 
+                        onChange={(e) => setDescription(e.target.value)} 
                         placeholder="Text" />
             </div>
             <div className="">
@@ -69,7 +61,7 @@ const Home = (props) => {
                     onupdatefiles={fileItems => {setFiles(fileItems.map(fileItem => fileItem.file))}}
                     allowMultiple={true}
                     maxFiles={10}
-                    name="images"
+                    name="files"
                     labelIdle='Drag & Drop files or <span class="filepond--label-action">Browse</span>'
                 />
             </div>

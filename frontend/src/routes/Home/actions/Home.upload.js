@@ -24,7 +24,7 @@ export const uploadFileStart = () => {
 export const uploadFile = (saleData, files) => {
     return dispatch => {
         dispatch(uploadFileStart());
-        axios.post('file', saleData)
+        axios.post('upload', saleData)
             .then(res => {
             console.log("res: ", res)
             if (res.status === 201) {

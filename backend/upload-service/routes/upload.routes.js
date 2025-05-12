@@ -1,0 +1,99 @@
+const express = require('express'),
+    multer = require('multer'),
+    moment= require('moment') 
+    mongoose = require('mongoose'),
+    { v4: uuidV4 } = require('uuid'),
+    { MulterAzureStorage  } = require('multer-azure-blob-storage'),
+    router = express.Router();
+
+const config = require("../config/config");
+
+const resolveBlobName = (req, file) => {
+    return new Promise((resolve, reject) => {
+        const fileName = file.originalname.toLowerCase().split(' ').join('-');
+        const blobName = uuidV4() + '-' + fileName;
+        resolve(blobName);
+    });
+};
+
+const resolveMetadata = (req, file) => {
+    return new Promise((resolve, reject) => {
+        const metadata = {fieldName: file.fieldname};
+        resolve(metadata);
+    });
+};
+
+const connectionString = `DefaultEndpointsProtocol=https;AccountName=${config.storageName};AccountKey=${config.storageKey};EndpointSuffix=core.windows.net`
+
+const azureStorage = new MulterAzureStorage({
+    connectionString: connectionString,
+    accessKey: config.storageKey,
+    accountName: config.storageName,
+    containerName: 'sales',
+    blobName: resolveBlobName,
+    metadata: resolveMetadata,
+});
+
+const upload = multer({
+    storage: azureStorage
+});
+
+// File model
+let SalesData = require('../models/SalesData');
+
+router.post('/', upload.array('saleFile', 10), (req, res, next) => {
+    console.log(req)
+    const curDate = moment().format('MMMM Do YYYY, h:mm:ss a')
+    const sales = new SalesData({
+        _id: new mongoose.Types.ObjectId(),
+        title: req.body.title,
+        description: req.body.description,
+        fileName: req.files.map(file => file.blobName),
+        date: curDate,
+    });
+    sales.save().then(result => {
+        res.status(201).json({
+            message: "Blog created successfully!",
+            saleDataCreated: {
+                _id: result._id,
+                fileName: result.fileName,
+                title: result.title,
+                description: result.description,
+                date: result.date
+            }
+        })
+    }).catch(err => {
+        console.log(err),
+        res.status(500).json({
+            error: err
+        });
+    })
+})
+
+router.get("/", (req, res) => {
+    SalesData.find().then(data => {
+        res.status(200).json({
+            sales: data
+        });
+    }).catch(err => {
+        console.log(err),
+        res.status(500).json({
+            error: err
+        })
+    });
+});
+
+router.get("/:id", (req, res) => {
+    SalesData.findById(req.params.id).then(data => {
+        res.status(200).json({
+            sale: data
+        })
+    }).catch(err => {
+        console.log(err),
+        res.status(500).json({
+            error: err
+        })
+    });;
+});
+
+module.exports = router;
