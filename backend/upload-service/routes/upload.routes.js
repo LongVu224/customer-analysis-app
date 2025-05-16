@@ -6,6 +6,10 @@ const express = require('express'),
     { MulterAzureStorage  } = require('multer-azure-blob-storage'),
     router = express.Router();
 
+// file model
+const SalesData = require('../models/SalesData');
+
+// env configuration
 const config = require("../config/config");
 
 const resolveBlobName = (req, file) => {
@@ -34,16 +38,16 @@ const azureStorage = new MulterAzureStorage({
     metadata: resolveMetadata,
 });
 
+// middleware for uploading files
 const upload = multer({
     storage: azureStorage
 });
 
-// File model
-let SalesData = require('../models/SalesData');
-
+// Create sales data endpoint
 router.post('/', upload.array('saleFile', 10), (req, res, next) => {
-    console.log(req)
     const curDate = moment().format('MMMM Do YYYY, h:mm:ss a')
+
+    // Create sales data instance
     const sales = new SalesData({
         _id: new mongoose.Types.ObjectId(),
         title: req.body.title,
@@ -51,9 +55,11 @@ router.post('/', upload.array('saleFile', 10), (req, res, next) => {
         fileName: req.files.map(file => file.blobName),
         date: curDate,
     });
+
+    // Save data to database
     sales.save().then(result => {
         res.status(201).json({
-            message: "Blog created successfully!",
+            message: "File uploaded successfully!",
             saleDataCreated: {
                 _id: result._id,
                 fileName: result.fileName,
@@ -70,6 +76,7 @@ router.post('/', upload.array('saleFile', 10), (req, res, next) => {
     })
 })
 
+// Get all sales data endpoint
 router.get("/", (req, res) => {
     SalesData.find().then(data => {
         res.status(200).json({
@@ -83,6 +90,7 @@ router.get("/", (req, res) => {
     });
 });
 
+// Get sales data by id endpoint
 router.get("/:id", (req, res) => {
     SalesData.findById(req.params.id).then(data => {
         res.status(200).json({
