@@ -4,6 +4,7 @@ const express = require('express'),
     mongoose = require('mongoose'),
     { v4: uuidV4 } = require('uuid'),
     { MulterAzureStorage  } = require('multer-azure-blob-storage'),
+    { QueueClient  } = require('@azure/storage-queue'),
     router = express.Router();
 
 // file model
@@ -27,6 +28,11 @@ const resolveMetadata = (req, file) => {
     });
 };
 
+function jsonToBase64(jsonObj) {
+    const jsonString = JSON.stringify(jsonObj)
+    return  Buffer.from(jsonString).toString('base64')
+}
+
 const connectionString = `DefaultEndpointsProtocol=https;AccountName=${config.storageName};AccountKey=${config.storageKey};EndpointSuffix=core.windows.net`
 
 const azureStorage = new MulterAzureStorage({
@@ -43,6 +49,8 @@ const upload = multer({
     storage: azureStorage
 });
 
+const queueClient = new QueueClient(connectionString, 'sales-upload-queue');
+
 // Create sales data endpoint
 router.post('/', upload.array('saleFile', 10), (req, res, next) => {
     const curDate = moment().format('MMMM Do YYYY, h:mm:ss a')
@@ -55,6 +63,23 @@ router.post('/', upload.array('saleFile', 10), (req, res, next) => {
         fileName: req.files.map(file => file.blobName),
         date: curDate,
     });
+
+    const salesMessagePayload = {
+        title: req.body.title,
+        description: req.body.description,
+        fileName: req.files.map(file => file.blobName),
+        date: curDate
+    }
+
+    // Send message to Azure Queue
+    queueClient.sendMessage(jsonToBase64(salesMessagePayload))
+        .then(() => {
+            console.log('Message sent to sales-upload-queue');
+        })
+        .catch((err) => {
+            console.error('Error sending message to sales-upload-queue:', err);
+        }
+    );
 
     // Save data to database
     sales.save().then(result => {
