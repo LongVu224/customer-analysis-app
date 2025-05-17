@@ -57,37 +57,34 @@ router.post('/', upload.array('saleFile', 10), (req, res, next) => {
 
   // Create sales data instance
   const sales = new SalesData({
-    _id: new mongoose.Types.ObjectId(),
+    id: new mongoose.Types.ObjectId(),
     title: req.body.title,
     description: req.body.description,
     fileName: req.files.map(file => file.blobName),
     date: curDate,
   });
-  
-  const payload = {
-    title: req.body.title,
-    description: req.body.description,
-    fileName: req.files.map(file => file.blobName),
-    date: curDate,
-  };
 
   (async () => {
     try {
-      // Send data to ZeroMQ
-      await pushSocket.send(JSON.stringify(payload));
-      console.log("Data sent to ZeroMQ");
-
       // Save data to database
       const result = await sales.save();
+
+      // Create zeroMQ payload
+      const resultPayload = {
+        id: result._id,
+        title: result.title,
+        description: result.description,
+        fileName: result.fileName,
+        date: result.date
+      }
+
+      // Send data to ZeroMQ
+      await pushSocket.send(JSON.stringify(resultPayload));
+      console.log("Data sent to ZeroMQ");
+
       res.status(201).json({
         message: "File uploaded successfully!",
-        saleDataCreated: {
-          _id: result._id,
-          fileName: result.fileName,
-          title: result.title,
-          description: result.description,
-          date: result.date
-        }
+        saleDataCreated: resultPayload
       });
     } catch (err) {
         console.log(err);
