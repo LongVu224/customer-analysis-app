@@ -2,7 +2,6 @@ let express = require('express'),
   mongoose = require('mongoose'),
   cors = require('cors'),
   bodyParser = require('body-parser'),
-  path = require('path')
   createError = require('http-errors');
 
 const uploadApi = require('./routes/upload.routes')
@@ -27,7 +26,6 @@ app.use(bodyParser.urlencoded({
 }));
 app.use(cors());
 
-app.use('/public', express.static(path.join(__dirname, '/public')))
 app.use('/upload', uploadApi)
 
 // catch 404 and forward to error handler

@@ -17,7 +17,8 @@ const zmq = require('zeromq');
 const pushSocket = new zmq.Push();
 
 (async () => {
-  await pushSocket.bind("tcp://127.0.0.1:6543");
+  await pushSocket.bind("tcp://127.0.0.1:65439");
+  console.log("Binding to port 65439...");
 })();
 
 const resolveBlobName = (req, file) => {
