@@ -6,9 +6,7 @@ const salesSchema = new mongoose.Schema({
         type: String,
         default: null
     },
-    fileName: [
-        { type: String }
-    ],
+    fileName: String,
     title: String,
     description: String,
     date: String,
@@ -16,4 +14,4 @@ const salesSchema = new mongoose.Schema({
     collection: 'sales'
 })
 
-module.exports = mongoose.model('Sales', salesSchema)
+module.exports = mongoose.model('Sales', salesSchema);

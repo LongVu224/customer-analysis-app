@@ -1,15 +1,13 @@
 const express = require('express'),
-  multer = require('multer'),
   mongoose = require('mongoose'),
   zmq = require('zeromq'),
   { BlobServiceClient } = require('@azure/storage-blob'),
   csv = require('csv-parser'),
-  stream = require('stream'),
-  router = express.Router();
+  stream = require('stream');
 
 // file model
 const Insights = require('../models/Insights');
-const SalesData = require('../models/SalesData');
+const Sales = require('../models/SalesData');
 
 // env configuration
 const config = require("../config/config");
@@ -83,33 +81,31 @@ async function insightsWorker() {
     const data = JSON.parse(msg.toString());
     console.log("Received message:", data);
 
-    // Process the data here
-    for await (const [msg] of pullSocket) {
-      const message = JSON.parse(msg.toString());
+    try {
+      const fileName = data.fileName;
+      const insights = await processBlobFile(fileName);
 
-      try {
-        const fileName = message.fileName;
-        const insights = await processBlobFile(fileName);
+      // Save the insights data to the database
+      const insightsData = new Insights({
+        id: new mongoose.Types.ObjectId(),
+        salesId: data.id,
+        countrySales: insights.salesByCountry,
+        countryQuantitySales: insights.quantityByCountry,
+        topProduct: insights.topProducts,
+        totalSales: insights.totalSales
+      });
+      await insightsData.save();
 
-        // Save the insights data to the database
-        const insightsData = new Insights({
-          id: new mongoose.Types.ObjectId(),
-          salesId: message.id,
-          countrySales: insights.salesByCountry,
-          countryQuantitySales: insights.quantityByCountry,
-          topProduct: insights.topProducts,
-          totalSales: insights.totalSales
-        });
-        await insightsData.save();
-
-        // Update the sales data with insightsId
-        await SalesData.updateOne(
-          { id: message.id },
-          { $set: { insightsId: insightsData.id } }
-        );
-      } catch (err) {
-        console.error('Error processing file:', err);
-      }
+      // Update the sales data with insightsId
+      await Sales.updateOne(
+        { id: data.id },
+        { $set: { insightsId: insightsData.id } }
+      );
+    } catch (err) {
+      console.error('Error processing file:', err);
     }
   }
 }
+
+
+module.exports = insightsWorker;
