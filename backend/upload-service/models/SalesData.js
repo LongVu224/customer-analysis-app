@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const salesSchema = new mongoose.Schema({
-    id: mongoose.Schema.Types.ObjectId,
+    _id: mongoose.Schema.Types.ObjectId,
     insightsId: {
         type: String,
         default: null
@@ -14,4 +14,4 @@ const salesSchema = new mongoose.Schema({
     collection: 'sales'
 })
 
-module.exports = mongoose.models.Sales || mongoose.model('Sales', salesSchema);
+module.exports = mongoose.model('Sales', salesSchema);

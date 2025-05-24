@@ -58,10 +58,10 @@ router.post('/', upload.array('saleFile', 10), (req, res, next) => {
 
   // Create sales data instance
   const sales = new SalesData({
-    id: new mongoose.Types.ObjectId(),
+    _id: new mongoose.Types.ObjectId(),
     title: req.body.title,
     description: req.body.description,
-    fileName: req.files.map(file => file.blobName),
+    fileName: req.files[0].blobName,
     date: curDate,
   });
 
@@ -72,7 +72,7 @@ router.post('/', upload.array('saleFile', 10), (req, res, next) => {
 
       // Create zeroMQ payload
       const resultPayload = {
-        id: result._id,
+        _id: result._id,
         title: result.title,
         description: result.description,
         fileName: result.fileName,

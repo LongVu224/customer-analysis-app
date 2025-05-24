@@ -87,8 +87,8 @@ async function insightsWorker() {
 
       // Save the insights data to the database
       const insightsData = new Insights({
-        id: new mongoose.Types.ObjectId(),
-        salesId: data.id,
+        _id: new mongoose.Types.ObjectId(),
+        salesId: data._id,
         countrySales: insights.salesByCountry,
         countryQuantitySales: insights.quantityByCountry,
         topProduct: insights.topProducts,
@@ -98,8 +98,8 @@ async function insightsWorker() {
 
       // Update the sales data with insightsId
       await Sales.updateOne(
-        { id: data.id },
-        { $set: { insightsId: insightsData.id } }
+        { _id: data._id },
+        { $set: { insightsId: insightsData._id } }
       );
     } catch (err) {
       console.error('Error processing file:', err);

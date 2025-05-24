@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const salesSchema = new mongoose.Schema({
-    id: mongoose.Schema.Types.ObjectId,
+    _id: mongoose.Schema.Types.ObjectId,
     insightsId: {
         type: String,
         default: null

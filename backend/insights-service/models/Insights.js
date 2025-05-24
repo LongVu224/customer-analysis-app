@@ -1,20 +1,25 @@
 const mongoose = require('mongoose');
 
 const blogSchema = new mongoose.Schema({
-    id: mongoose.Schema.Types.ObjectId,
+    _id: mongoose.Schema.Types.ObjectId,
     salesId: String,
-    countrySales: [
-        { type: String }
-    ],
-    countryQuantitySales: [
-        { type: String }
-    ],
+    countrySales: {
+        type: Map,
+        of: Number
+    },
+    countryQuantitySales: {
+        type: Map,
+        of: Number
+    },
     topProduct: [
-        { type: String }
+        {
+            productId: String,
+            amount: Number
+        }
     ],
     totalSales: String
 }, {
     collection: 'insights'
 })
 
-module.exports = mongoose.model('Sales', blogSchema)
+module.exports = mongoose.model('Insights', blogSchema)
