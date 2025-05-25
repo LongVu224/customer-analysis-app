@@ -1,7 +1,7 @@
 import {connect} from 'react-redux';
 
 import Home from './Home.component';
-import axios from '../../components/axios/axios';
+import { uploadServiceInstance } from '../../components/axios/axios';
 import withErrorHandler from '../../components/helper/ErrorHandler/withErrorHandler';
 import * as actions from './actions/Home.upload';
 
@@ -17,4 +17,4 @@ const mapDispatchToProps = dispatch => {
     };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(withErrorHandler(Home, axios));
+export default connect(mapStateToProps, mapDispatchToProps)(withErrorHandler(Home, uploadServiceInstance));

@@ -1,8 +1,12 @@
 import axios from 'axios';
 
 //Availability base url
-const instance = axios.create({
-    baseURL: process.env.REACT_APP_API_SERVER
+const uploadServiceInstance = axios.create({
+    baseURL: process.env.REACT_APP_UPLOAD_SERVICE_ENDPOINT
 });
 
-export default instance;
+const insightsServiceInstance = axios.create({
+    baseURL: process.env.REACT_APP_INSIGHTS_SERVICE_ENDPOINT
+});
+
+export { uploadServiceInstance, insightsServiceInstance };
