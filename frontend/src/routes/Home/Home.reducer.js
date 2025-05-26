@@ -8,7 +8,7 @@ const reducer = (state = initialState, action) => {
     switch (action.type) {
         case 'UPLOAD_FILE_START':
             return {
-                loading: false,
+                loading: true,
                 uploaded: false
             }
         case 'UPLOAD_FILE_SUCCESS':

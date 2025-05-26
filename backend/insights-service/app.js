@@ -4,7 +4,7 @@ let express = require('express'),
   bodyParser = require('body-parser'),
   createError = require('http-errors');
 
-const insightsWorker = require('./routes/insights.routes')
+const { insightsApi, insightsWorker } = require('./routes/insights.routes')
 const config = require("./config/config");
 
 // MongoDB Configuration
@@ -25,6 +25,8 @@ app.use(bodyParser.urlencoded({
   extended: true
 }));
 app.use(cors());
+
+app.use('/insights', insightsApi)
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {

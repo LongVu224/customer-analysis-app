@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { FilePond } from 'react-filepond'
 import { ModalInfo } from '../../components/Modal'
 import { Bar } from '../../components/BarLoader'
@@ -25,9 +25,6 @@ const Home = (props) => {
             setShowModal(true)
         }
     },[props.home?.uploaded])
-
-    console.log("props: ", props)
-
 
     return (
         <div className="upload-container">

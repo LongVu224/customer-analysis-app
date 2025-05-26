@@ -3,7 +3,7 @@ const express = require('express'),
   zmq = require('zeromq'),
   { BlobServiceClient } = require('@azure/storage-blob'),
   csv = require('csv-parser'),
-  stream = require('stream');
+  insightsApi = express.Router();
 
 // file model
 const Insights = require('../models/Insights');
@@ -107,5 +107,18 @@ async function insightsWorker() {
   }
 }
 
+// Get all sales data endpoint
+insightsApi.get("/", (req, res) => {
+  Insights.find().then(data => {
+    res.status(200).json({
+      insights: data
+    });
+  }).catch(err => {
+    console.log(err),
+    res.status(500).json({
+      error: err
+    })
+  });
+});
 
-module.exports = insightsWorker;
+module.exports = {insightsApi, insightsWorker};
