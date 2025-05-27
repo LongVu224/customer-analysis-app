@@ -26,7 +26,7 @@ export const fetchInsights = () => {
     insightsServiceInstance.get('insights')
     .then(response => {
       console.log("res: ", response)
-      if (response.status === 201) {
+      if (response.status === 200) {
         dispatch(insightsFetchSuccess(response));
       } else {
         dispatch(insightsFetchFail(new Error('Unexpected response status')));

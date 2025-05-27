@@ -12,7 +12,8 @@ const reducer = (state = initialState, action) => {
       }
     case 'FETCH_INSIGHTS_SUCCESS':
       return {
-        insights: action.response,
+        ...state,
+        insights: action.response.data.insights,
         loading: false
       }
     case 'FETCH_INSIGHTS_FAIL':
@@ -25,7 +26,8 @@ const reducer = (state = initialState, action) => {
       }
     case 'FETCH_SALES_DATA_SUCCESS':
       return {
-        salesData: action.response,
+        ...state,
+        salesData: action.response.data.sales,
         loading: false
       }
     case 'FETCH_SALES_DATA_FAIL':

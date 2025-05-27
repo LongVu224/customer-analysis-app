@@ -25,7 +25,7 @@ export const fetchSalesData = () => {
     dispatch(salesDataFetchStart());
     uploadServiceInstance.get('upload')
     .then(response => {
-      if (response.status === 201) {
+      if (response.status === 200) {
         dispatch(salesDataFetchSuccess(response));
       } else {
         dispatch(salesDataFetchFail(new Error('Unexpected response status')));
