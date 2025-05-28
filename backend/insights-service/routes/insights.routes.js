@@ -6,8 +6,8 @@ const express = require('express'),
   insightsApi = express.Router();
 
 // file model
-const Insights = require('../models/Insights');
-const Sales = require('../models/SalesData');
+const Insights = require('../../Common/models/Insights');
+const Sales = require('../../Common/models/SalesData');
 
 // env configuration
 const config = require("../config/config");

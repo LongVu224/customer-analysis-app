@@ -7,7 +7,7 @@ const express = require('express'),
   router = express.Router();
 
 // file model
-const SalesData = require('../models/SalesData');
+const SalesData = require('../../Common/models/SalesData');
 
 // env configuration
 const config = require("../config/config");
