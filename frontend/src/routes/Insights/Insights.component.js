@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react"
 import { Spinner } from '../../components/Spinner'
+import BarChart from '../../components/Charts/BarChart/bar'
 import './Insights.scss';
 
 const Insights = (props) => {
   const [ insights, setInsights ] = useState([]);
-  const [ dropdownValue, setDropdownValue ] = useState("");
+  const [ groupId, setGroupId ] = useState("");
+  const [ selectedGroup, setSelectedGroup ] = useState({});
 
   console.log("Insights props ", props)
 
@@ -46,7 +48,7 @@ const Insights = (props) => {
         <div className="wrap container">
           <h1 class="insights-title"><span>Insights Collection</span></h1>
           <div className="insights-group mb-3 insights-menu">
-            <select className="form-control" onChange={(e) => setDropdownValue(e.target.value)}>
+            <select className="form-control" onChange={(e) => {setGroupId(e.target.value); setSelectedGroup(insights.find(insight => insight._id === e.target.value) || {})}}>
               <option value="">Select Insights Group</option>
               {insights ? insights.map((insight, index) => ( 
                 <option key={index} value={insight._id}>
@@ -55,6 +57,19 @@ const Insights = (props) => {
               )) : null}
             </select>
           </div>
+          { groupId &&
+            <div className="insights-chart-box mb-3">
+              <h4>Sales Quantity by Country</h4>
+              <BarChart 
+                xaxisKey="country" 
+                dataKey="sales" 
+                data={Object.entries(selectedGroup.countryQuantitySales || {}).map(([country, value]) => ({
+                  country,
+                  sales: value,
+                }))}
+              />
+            </div>
+          }
         </div>
       }
     </div>
