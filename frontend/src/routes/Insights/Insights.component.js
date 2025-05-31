@@ -2,7 +2,9 @@ import { useState, useEffect, useRef } from "react"
 import { Spinner } from '../../components/Spinner'
 import BarChart from '../../components/Charts/BarChart/bar'
 import LineChart from '../../components/Charts/LineChart/line'
+import AreaChart from '../../components/Charts/AreaChart/area'
 import './Insights.scss';
+import { Area } from "recharts"
 
 const Insights = (props) => {
   const [ insights, setInsights ] = useState([]);
@@ -127,7 +129,7 @@ const Insights = (props) => {
             (groupId && selectedChart === "topProduct") &&
             <div className="insights-chart-box mb-3">
               <h4>Top Product Sales</h4>
-              <BarChart 
+              <AreaChart 
                 xaxisKey="productId" 
                 dataKey="amount" 
                 data={selectedGroup.topProduct || []}
