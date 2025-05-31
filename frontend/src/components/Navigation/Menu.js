@@ -14,6 +14,7 @@ const StyledMenu = styled.nav`
   top: 0;
   left: 0;
   transition: transform 0.3s ease-in-out;
+  border-radius: 0 20px 20px 0;
 
   @media (max-width: 576px) {
     width: 100%;
