@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Spinner } from '../../components/Spinner'
 import BarChart from '../../components/Charts/BarChart/bar'
 import './Insights.scss';
@@ -7,8 +7,7 @@ const Insights = (props) => {
   const [ insights, setInsights ] = useState([]);
   const [ groupId, setGroupId ] = useState("");
   const [ selectedGroup, setSelectedGroup ] = useState({});
-
-  console.log("Insights props ", props)
+  const [ selectedChart, setSelectedChart ] = useState("");
 
   useEffect(() => {
     props.onFetchInsights()
@@ -41,14 +40,39 @@ const Insights = (props) => {
     }
   }, [props.insights.insights, props.insights.salesData]);
 
+  // Ref to reset chart select
+  const chartSelectRef = useRef(null);
+
   return (
     <div className="insights-root">
       {props.insights.loading ? 
         <Spinner /> : 
         <div className="wrap container">
-          <h1 class="insights-title"><span>Insights Collection</span></h1>
+          <h1 className="insights-title"><span>Insights Collection</span></h1>
+          <div className="insights-chart-box mb-3">
+            <h4>Group revenue</h4>
+            <BarChart 
+              height={400}
+              xaxisKey="groupTitle" 
+              dataKey="totalSales" 
+              data={insights.map(insight => ({
+                groupTitle: insight.sale.title,
+                totalSales: Number(insight.totalSales)
+              }))}
+            />
+          </div>
           <div className="insights-group mb-3 insights-menu">
-            <select className="form-control" onChange={(e) => {setGroupId(e.target.value); setSelectedGroup(insights.find(insight => insight._id === e.target.value) || {})}}>
+            <select 
+              className="form-control" 
+              onChange={(e) => {
+                setGroupId(e.target.value)
+                setSelectedGroup(insights.find(insight => insight._id === e.target.value) || {})
+                setSelectedChart("")
+                if (chartSelectRef.current) {
+                  chartSelectRef.current.selectedIndex = 0;
+                }
+              }}
+            >
               <option value="">Select Insights Group</option>
               {insights ? insights.map((insight, index) => ( 
                 <option key={index} value={insight._id}>
@@ -58,6 +82,21 @@ const Insights = (props) => {
             </select>
           </div>
           { groupId &&
+            <div className="insights-group mb-3 insights-menu">
+              <select
+                className="form-control"
+                ref={chartSelectRef}
+                value={selectedChart}
+                onChange={(e) => setSelectedChart(e.target.value)}
+              >
+                <option value="">Select Insights Chart</option>
+                <option value="sales">Country Sales Quantity</option>
+                <option value="revenue">Country Revenue</option>
+                <option value="topProduct">Top Product Sales</option>
+              </select>
+            </div>
+          }
+          { (groupId && selectedChart === "sales") &&
             <div className="insights-chart-box mb-3">
               <h4>Sales Quantity by Country</h4>
               <BarChart 
