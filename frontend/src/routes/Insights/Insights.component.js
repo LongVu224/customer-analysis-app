@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react"
 import { Spinner } from '../../components/Spinner'
 import BarChart from '../../components/Charts/BarChart/bar'
+import LineChart from '../../components/Charts/LineChart/line'
 import './Insights.scss';
 
 const Insights = (props) => {
@@ -106,6 +107,30 @@ const Insights = (props) => {
                   country,
                   sales: value,
                 }))}
+              />
+            </div>
+          }
+          { (groupId && selectedChart === "revenue") &&
+            <div className="insights-chart-box mb-3">
+              <h4>Revenue by Country</h4>
+              <LineChart
+                xaxisKey="country" 
+                dataKey="revenue" 
+                data={Object.entries(selectedGroup.countrySales || {}).map(([country, value]) => ({
+                  country,
+                  revenue: value,
+                }))}
+              />
+            </div>
+          }
+          {
+            (groupId && selectedChart === "topProduct") &&
+            <div className="insights-chart-box mb-3">
+              <h4>Top Product Sales</h4>
+              <BarChart 
+                xaxisKey="productId" 
+                dataKey="amount" 
+                data={selectedGroup.topProduct || []}
               />
             </div>
           }
