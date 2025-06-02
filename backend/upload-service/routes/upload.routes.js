@@ -2,6 +2,7 @@ const express = require('express'),
   multer = require('multer'),
   moment= require('moment') 
   mongoose = require('mongoose'),
+  zmq = require('zeromq'),
   { v4: uuidV4 } = require('uuid'),
   { MulterAzureStorage  } = require('multer-azure-blob-storage'),
   router = express.Router();
@@ -11,15 +12,6 @@ const SalesData = require('../models/SalesData');
 
 // env configuration
 const config = require("../config/config");
-
-// zeromq configuration
-const zmq = require('zeromq');
-const pushSocket = new zmq.Push();
-
-(async () => {
-  await pushSocket.bind("tcp://127.0.0.1:65439");
-  console.log("Binding to port 65439...");
-})();
 
 const resolveBlobName = (req, file) => {
   return new Promise((resolve, reject) => {
@@ -38,22 +30,33 @@ const resolveMetadata = (req, file) => {
 
 const connectionString = `DefaultEndpointsProtocol=https;AccountName=${config.storageName};AccountKey=${config.storageKey};EndpointSuffix=core.windows.net`
 
-const azureStorage = new MulterAzureStorage({
-  connectionString: connectionString,
-  accessKey: config.storageKey,
-  accountName: config.storageName,
-  containerName: 'sales',
-  blobName: resolveBlobName,
-  metadata: resolveMetadata,
-});
+let upload;
 
-// middleware for uploading files
-const upload = multer({
-  storage: azureStorage
-});
+// Mock storage for testing -> files won't be uploaded
+if (process.env.NODE_ENV === 'test') {
+  upload = multer({ storage: multer.memoryStorage() });
+} else {
+  const azureStorage = new MulterAzureStorage({
+    connectionString: connectionString,
+    accessKey: config.storageKey,
+    accountName: config.storageName,
+    containerName: 'sales',
+    blobName: resolveBlobName,
+    metadata: resolveMetadata,
+  });
+
+  // middleware for uploading files
+  upload = multer({
+    storage: azureStorage
+  });
+}
 
 // Create sales data endpoint
 router.post('/', upload.array('saleFile', 10), (req, res, next) => {
+  if (!req.files || req.files.length === 0) {
+    return res.status(400).json({ error: "No file uploaded." });
+  }
+
   const curDate = moment().format('MMMM Do YYYY, h:mm:ss a')
 
   // Create sales data instance
@@ -61,11 +64,11 @@ router.post('/', upload.array('saleFile', 10), (req, res, next) => {
     _id: new mongoose.Types.ObjectId(),
     title: req.body.title,
     description: req.body.description,
-    fileName: req.files[0].blobName,
+    fileName: process.env.NODE_ENV != 'test' ? req.files[0].blobName : req.files[0].originalname,
     date: curDate,
   });
 
-  (async () => {
+  return (async () => {
     try {
       // Save data to database
       const result = await sales.save();
@@ -79,18 +82,28 @@ router.post('/', upload.array('saleFile', 10), (req, res, next) => {
         date: result.date
       }
 
-      // Send data to ZeroMQ
-      await pushSocket.send(JSON.stringify(resultPayload));
-      console.log("Data sent to ZeroMQ");
+      // Only run ZeroMQ logic if not in test NODE_ENV or description is "ZeroMQ Test"
+      if (process.env.NODE_ENV !== 'test' || req.body.description === 'ZeroMQ Test') {
+        // Open a ZeroMQ push socket
+        const pushSocket = new zmq.Push();
+        await pushSocket.bind("tcp://127.0.0.1:65439");
 
-      res.status(201).json({
+        // Send data to ZeroMQ
+        await pushSocket.send(JSON.stringify(resultPayload));
+        console.log("Data sent to ZeroMQ");
+
+        // Close the ZeroMQ socket
+        await pushSocket.close();
+      }
+
+      return res.status(201).json({
         message: "File uploaded successfully!",
         saleDataCreated: resultPayload
       });
     } catch (err) {
         console.log(err);
-        res.status(500).json({
-          error: err
+        return res.status(500).json({
+          error: err.message || "An error occurred while processing your request."
         });
     }
   })();
