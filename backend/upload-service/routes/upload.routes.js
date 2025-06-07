@@ -73,6 +73,9 @@ router.post('/', upload.array('saleFile', 10), (req, res, next) => {
       // Save data to database
       const result = await sales.save();
 
+      // Initialize message sent flag
+      let messageSent = false;
+
       // Create zeroMQ payload
       const resultPayload = {
         _id: result._id,
@@ -86,10 +89,11 @@ router.post('/', upload.array('saleFile', 10), (req, res, next) => {
       if (process.env.NODE_ENV !== 'test' || req.body.description === 'ZeroMQ Test') {
         // Open a ZeroMQ push socket
         const pushSocket = new zmq.Push();
-        await pushSocket.bind("tcp://127.0.0.1:65439");
+        await pushSocket.connect("tcp://127.0.0.1:65439");
 
         // Send data to ZeroMQ
         await pushSocket.send(JSON.stringify(resultPayload));
+        messageSent = true;
         console.log("Data sent to ZeroMQ");
 
         // Close the ZeroMQ socket
@@ -98,7 +102,8 @@ router.post('/', upload.array('saleFile', 10), (req, res, next) => {
 
       return res.status(201).json({
         message: "File uploaded successfully!",
-        saleDataCreated: resultPayload
+        saleDataCreated: resultPayload,
+        messageSent: messageSent
       });
     } catch (err) {
         console.log(err);
