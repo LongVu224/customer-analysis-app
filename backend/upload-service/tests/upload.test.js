@@ -91,7 +91,8 @@ describe('Upload Route Integration Tests', () => {
     });
 
     afterAll(async () => {
-			await pullSocket.unbind("tcp://127.0.0.1:65439");
+      await pullSocket.unbind("tcp://127.0.0.1:65439");
+      await pullSocket.close();
     });
 
     it('should send data to ZeroMQ push socket when file is uploaded', async () => {
