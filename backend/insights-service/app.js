@@ -48,10 +48,10 @@ const server = app.listen(port, () => {
 
   // Run the insights worker
   insightsWorker()
-    .then(() => {
-      console.log('Worker started successfully');
-    })
-    .catch(err => {
-      console.error('Error starting worker:', err);
-    });
+  .then(() => {
+    console.log('Worker started successfully');
+  })
+  .catch(err => {
+    console.error('Error starting worker:', err);
+  });
 })

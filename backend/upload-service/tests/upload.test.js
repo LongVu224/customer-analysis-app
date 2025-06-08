@@ -20,14 +20,10 @@ describe('Upload Route Integration Tests', () => {
 
     // Make sure to connect to the test database
     mongoose.Promise = global.Promise;
-    mongoConnection = await mongoose.connect(config.dbConnectionString, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    mongoConnection = await mongoose.connect(config.dbConnectionString);
   });
 
   afterAll(async () => {
-    await mongoose.connection.dropDatabase();
     await mongoose.connection.close();
   });
 
@@ -85,9 +81,6 @@ describe('Upload Route Integration Tests', () => {
     beforeAll(async () => {
       pullSocket = new zmq.Pull();
       await pullSocket.bind("tcp://127.0.0.1:65439");
-
-			const pushSocket = new zmq.Push();
-			await pushSocket.close();
     });
 
     afterAll(async () => {

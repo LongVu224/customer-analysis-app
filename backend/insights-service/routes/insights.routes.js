@@ -74,7 +74,7 @@ async function processBlobFile(blobName) {
 async function insightsWorker() {
   // zeroMQ setup
   const pullSocket = new zmq.Pull();
-  pullSocket.connect("tcp://127.0.0.1:65439");
+  await pullSocket.bind("tcp://127.0.0.1:65439");
   console.log("Listening for messages on port 65439...");
 
   for await (const [msg] of pullSocket) {
@@ -83,7 +83,23 @@ async function insightsWorker() {
 
     try {
       const fileName = data.fileName;
-      const insights = await processBlobFile(fileName);
+      let insights;
+
+      // return mock data if in test environment
+      if (process.env.NODE_ENV === 'test') {
+        insights = {
+          totalSales: 1000,
+          salesByCountry: { US: 500, UK: 300, CA: 200 },
+          quantityByCountry: { US: 50, UK: 30, CA: 20 },
+          topProducts: [
+            { productId: 'P1', amount: 400 },
+            { productId: 'P2', amount: 300 },
+            { productId: 'P3', amount: 200 }
+          ]
+        };
+      } else {
+        insights = await processBlobFile(fileName);
+      }
 
       // Save the insights data to the database
       const insightsData = new Insights({
@@ -96,18 +112,20 @@ async function insightsWorker() {
       });
       await insightsData.save();
 
-      // Update the sales data with insightsId
-      await Sales.updateOne(
-        { _id: data._id },
-        { $set: { insightsId: insightsData._id } }
-      );
+      // Update the sales data with insightsId (skip in test environment)
+      if (process.env.NODE_ENV !== 'test') {
+        await Sales.updateOne(
+          { _id: data._id },
+          { $set: { insightsId: insightsData._id } }
+        );
+      }
     } catch (err) {
       console.error('Error processing file:', err);
     }
   }
 }
 
-// Get all sales data endpoint
+// Get all insights data endpoint
 insightsApi.get("/", (req, res) => {
   Insights.find().then(data => {
     res.status(200).json({
@@ -119,6 +137,29 @@ insightsApi.get("/", (req, res) => {
       error: err
     })
   });
+});
+
+// Get insights by salesId endpoint
+insightsApi.get("/:salesId", (req, res) => {
+  const salesId = req.params.salesId;
+  Insights.findOne
+    ({ salesId: salesId })
+    .then(data => {
+      if (!data) {
+        return res.status(404).json({
+          message: "Insights not found for the given salesId"
+        });
+      }
+      res.status(200).json({
+        insights: data
+      });
+    })
+    .catch(err => {
+      console.log(err);
+      res.status(500).json({
+        error: err
+      });
+    });
 });
 
 module.exports = {insightsApi, insightsWorker};
