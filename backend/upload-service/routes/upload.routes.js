@@ -9,6 +9,7 @@ const express = require('express'),
 
 // file model
 const SalesData = require('../models/SalesData');
+const { saveProcessLog } = require('../models/ProcessLog');
 
 // env configuration
 const config = require("../config/config");
@@ -52,8 +53,9 @@ if (process.env.NODE_ENV === 'test') {
 }
 
 // Create sales data endpoint
-router.post('/', upload.array('saleFile', 10), (req, res, next) => {
+router.post('/', upload.array('saleFile', 10), async (req, res, next) => {
   if (!req.files || req.files.length === 0) {
+    await saveProcessLog('upload-service', 'createSalesData', 'No file uploaded');
     return res.status(400).json({ error: "No file uploaded." });
   }
 
@@ -72,6 +74,7 @@ router.post('/', upload.array('saleFile', 10), (req, res, next) => {
     try {
       // Save data to database
       const result = await sales.save();
+      await saveProcessLog('upload-service', 'createSalesData', `Sales data created with ID: ${result._id}`);
 
       // Initialize message sent flag
       let messageSent = false;
@@ -96,10 +99,14 @@ router.post('/', upload.array('saleFile', 10), (req, res, next) => {
         messageSent = true;
         console.log("Data sent to ZeroMQ");
 
+        // Log the message sent
+        await saveProcessLog('upload-service', 'createSalesData', `Message sent to ZeroMQ`);
+
         // Close the ZeroMQ socket
         await pushSocket.close();
       }
 
+      await saveProcessLog('upload-service', 'createSalesData', `Sales data with ID: ${result._id} processed successfully`);
       return res.status(201).json({
         message: "File uploaded successfully!",
         saleDataCreated: resultPayload,
@@ -107,6 +114,7 @@ router.post('/', upload.array('saleFile', 10), (req, res, next) => {
       });
     } catch (err) {
         console.log(err);
+        await saveProcessLog('upload-service', 'createSalesData', `Error creating sales data: ${err.message}`);
         return res.status(500).json({
           error: err.message || "An error occurred while processing your request."
         });
@@ -116,12 +124,14 @@ router.post('/', upload.array('saleFile', 10), (req, res, next) => {
 
 // Get all sales data endpoint
 router.get("/", (req, res) => {
-  SalesData.find().then(data => {
+  SalesData.find().then(async data => {
+    await saveProcessLog('upload-service', 'getAllSalesData', `Fetched all sales records successfully`);
     res.status(200).json({
       sales: data
     });
-  }).catch(err => {
+  }).catch(async err => {
     console.log(err),
+    await saveProcessLog('upload-service', 'getAllSalesData', `Error fetching sales data: ${err.message}`);
     res.status(500).json({
       error: err
     })
@@ -130,12 +140,14 @@ router.get("/", (req, res) => {
 
 // Get sales data by id endpoint
 router.get("/:id", (req, res) => {
-  SalesData.findById(req.params.id).then(data => {
+  SalesData.findById(req.params.id).then(async data => {
+    await saveProcessLog('upload-service', 'getSalesDataById', `Fetched sales data for ID: ${req.params.id}`);
     res.status(200).json({
       sale: data
     })
-  }).catch(err => {
+  }).catch(async err => {
     console.log(err),
+    await saveProcessLog('upload-service', 'getSalesDataById', `Error fetching sales data for ID: ${req.params.id}`);
     res.status(500).json({
       error: err
     })
