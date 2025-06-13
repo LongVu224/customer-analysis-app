@@ -40,3 +40,5 @@ monitorApi.get('/service/:serviceName', async (req, res) => {
       });
     });
 });
+
+module.exports = monitorApi;

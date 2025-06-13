@@ -11,7 +11,8 @@ const logSchema = new mongoose.Schema({
 })
 
 const saveProcessLog = async (serviceName, processName, message) => {
-    const logEntry = new logSchema({
+    const ProcessLog = mongoose.model('ProcessLog', logSchema);
+    const logEntry = new ProcessLog({
       _id: new mongoose.Types.ObjectId(),
       serviceName: serviceName,
       processName: processName,

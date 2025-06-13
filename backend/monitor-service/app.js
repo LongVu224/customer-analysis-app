@@ -4,7 +4,7 @@ let express = require('express'),
   bodyParser = require('body-parser'),
   createError = require('http-errors');
 
-const { monitorApi } = require('./routes/monitor.routes')
+const monitorApi = require('./routes/monitor.routes')
 const config = require("./config/config");
 
 // MongoDB Configuration

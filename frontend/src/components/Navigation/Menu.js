@@ -5,7 +5,7 @@ const StyledMenu = styled.nav`
   display: flex;
   flex-direction: column;
   justify-content: center;
-  background: #f5f5f5; /* light grey */
+  background: rgba( 255,255, 255, 0.2);
   transform: ${({ open }) => (open ? "translateX(0)" : "translateX(-100%)")};
   height: 100vh;
   text-align: left;
@@ -26,7 +26,7 @@ const StyledMenu = styled.nav`
     padding: 2rem 0;
     font-weight: bold;
     letter-spacing: 0.5rem;
-    color: #0d0c1d;
+    color: white;
     text-decoration: none;
     transition: color 0.3s linear;
 
@@ -36,7 +36,7 @@ const StyledMenu = styled.nav`
     }
 
     &:hover {
-      color: #343078;
+      color: #ff8489;
     }
   }
 `;
@@ -49,6 +49,9 @@ const Menu = ({ open }) => {
       </a>
       <a href="/Insights">
         Insights
+      </a>
+      <a href="/Monitor">
+        Monitor
       </a>
     </StyledMenu>
   );
