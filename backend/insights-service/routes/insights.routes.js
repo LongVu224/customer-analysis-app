@@ -77,12 +77,12 @@ async function insightsWorker() {
   const pullSocket = new zmq.Pull();
   await pullSocket.bind("tcp://127.0.0.1:65439");
   console.log("Listening for messages on port 65439...");
-  await saveProcessLog('insights-service', 'insightsWorker', 'Worker started and listening for messages');
+  await saveProcessLog('insights-service', 'insightsWorker', 'Information', 'Worker started and listening for messages');
 
   for await (const [msg] of pullSocket) {
     const data = JSON.parse(msg.toString());
     console.log("Received message:", data);
-    await saveProcessLog('insights-service', 'insightsWorker', `Received message: ${JSON.stringify(data)}`);
+    await saveProcessLog('insights-service', 'insightsWorker', 'Information',`Received message: ${JSON.stringify(data)}`);
 
     try {
       const fileName = data.fileName;
@@ -124,7 +124,7 @@ async function insightsWorker() {
       }
     } catch (err) {
       console.error('Error processing file:', err);
-      await saveProcessLog('insights-service', 'insightsWorker', `Error processing message: ${err.message}`);
+      await saveProcessLog('insights-service', 'insightsWorker', 'Error', `Error processing message: ${err.message}`);
     }
   }
 }
@@ -132,13 +132,13 @@ async function insightsWorker() {
 // Get all insights data endpoint
 insightsApi.get("/", (req, res) => {
   Insights.find().then(async data => {
-    await saveProcessLog('insights-service', 'getAllInsights', `Fetched insights records successfully`);
+    await saveProcessLog('insights-service', 'getAllInsights', 'Information', `Fetched insights records successfully`);
     res.status(200).json({
       insights: data
     });
   }).catch(async err => {
     console.log(err),
-    await saveProcessLog('insights-service', 'getAllInsights', `Error fetching insights: ${err.message}`);
+    await saveProcessLog('insights-service', 'getAllInsights', 'Error', `Error fetching insights: ${err.message}`);
     res.status(500).json({
       error: err
     })
@@ -152,20 +152,20 @@ insightsApi.get("/:salesId", (req, res) => {
     ({ salesId: salesId })
     .then(async data => {
       if (!data) {
-        await saveProcessLog('insights-service', 'getInsightsBySalesId', `No insights found for salesId: ${salesId}`);
+        await saveProcessLog('insights-service', 'getInsightsBySalesId', 'Error', `No insights found for salesId: ${salesId}`);
         return res.status(404).json({
           message: "Insights not found for the given salesId"
         });
       }
 
-      await saveProcessLog('insights-service', 'getInsightsBySalesId', `Fetched insights for salesId: ${salesId}`);
+      await saveProcessLog('insights-service', 'getInsightsBySalesId', 'Information', `Fetched insights for salesId: ${salesId}`);
       res.status(200).json({
         insights: data
       });
     })
     .catch(async err => {
       console.log(err);
-      await saveProcessLog('insights-service', 'getInsightsBySalesId', `Error fetching insights for salesId ${salesId}: ${err.message}`);
+      await saveProcessLog('insights-service', 'getInsightsBySalesId', 'Error', `Error fetching insights for salesId ${salesId}: ${err.message}`);
       res.status(500).json({
         error: err
       });

@@ -3,7 +3,7 @@ const express = require('express'),
   monitorApi = express.Router();
 
 // file model
-const { saveProcessLog, ProcessLog } = require('../models/ProcessLog');
+const { ProcessLog } = require('../models/ProcessLog');
 
 // env configuration
 const config = require("../config/config");
