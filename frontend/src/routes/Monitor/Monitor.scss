@@ -1,4 +1,4 @@
-.insights-root {
+.monitor-root {
   background-image: linear-gradient( rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),url('/assets/images/background.jpg');
   background-position: center;
   background-repeat: no-repeat;
@@ -43,7 +43,7 @@
   }
 }
 
-.insights-menu select {
+.monitor-menu select {
   height: 60px;
   padding: 10px;
   font-size: 16px;
@@ -54,13 +54,13 @@
   transition: border 0.3s ease;
 }
 
-.insights-menu select:focus {
+.monitor-menu select:focus {
   border-color: #ff8489;
   outline: none;
   box-shadow: 0 0 5px rgba(255, 132, 137, 0.5);
 }
 
-.insights-chart-box {
+.monitor-chart-box {
   width: 100%;
   margin: 30px auto;
   padding: 20px;
@@ -70,12 +70,12 @@
   color: #333;
 }
 
-.insights-chart-box h4 {
+.monitor-chart-box h4 {
   text-align: center;
   margin-bottom: 20px;
   font-size: 1.5rem;
 }
 
-.insights-revenue {
+.monitor-revenue {
   display: flex;
 }

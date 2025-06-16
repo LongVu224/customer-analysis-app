@@ -5,6 +5,7 @@ import Menu from './components/Navigation/Menu';
 import { Routes, Route } from 'react-router-dom';
 import Home from './routes/Home';
 import Insights from './routes/Insights';
+import Monitor from './routes/Monitor';
 
 const useOnClickOutside = (ref, handler) => {
   React.useEffect(() => {
@@ -31,6 +32,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/Insights" element={<Insights />} />
+        <Route path="/Monitor" element={<Monitor />} />
       </Routes>
       <div ref={node}>
         <Burger open={open} setOpen={setOpen} />

@@ -13,7 +13,7 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
   return {
-    onFetchProcessLog: () => dispatch(monitorActions.fetchProcessLogs())
+    onFetchProcessLog: (serviceName) => dispatch(monitorActions.fetchProcessLogs(serviceName))
   };
 }
 

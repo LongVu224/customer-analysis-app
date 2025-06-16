@@ -1,6 +1,6 @@
 const initialState = {
   processLogs: [],
-  loading: true
+  loading: false
 };
 
 const reducer = (state = initialState, action) => {
@@ -12,7 +12,7 @@ const reducer = (state = initialState, action) => {
     case 'FETCH_PROCESS_LOGS_SUCCESS':
       return {
         ...state,
-        PROCESS_LOG: action.response.data.processLogs,
+        processLogs: action.response.data.logs,
         loading: false
       }
     case 'FETCH_PROCESS_LOGS_FAIL':

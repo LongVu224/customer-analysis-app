@@ -25,7 +25,6 @@ export const fetchProcessLogs = (serviceName) => {
     dispatch(processLogsFetchStart());
     monitorServiceInstance.get(`monitor/service/${serviceName}`)
     .then(response => {
-      console.log("res: ", response)
       if (response.status === 200) {
         dispatch(processLogsFetchSuccess(response));
       } else {

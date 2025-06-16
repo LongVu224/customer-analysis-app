@@ -25,7 +25,6 @@ export const fetchInsights = () => {
     dispatch(insightsFetchStart());
     insightsServiceInstance.get('insights')
     .then(response => {
-      console.log("res: ", response)
       if (response.status === 200) {
         dispatch(insightsFetchSuccess(response));
       } else {

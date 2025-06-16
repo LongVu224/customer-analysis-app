@@ -4,7 +4,6 @@ import BarChart from '../../components/Charts/BarChart/bar'
 import LineChart from '../../components/Charts/LineChart/line'
 import AreaChart from '../../components/Charts/AreaChart/area'
 import './Insights.scss';
-import { Area } from "recharts"
 
 const Insights = (props) => {
   const [ insights, setInsights ] = useState([]);
@@ -12,10 +11,12 @@ const Insights = (props) => {
   const [ selectedGroup, setSelectedGroup ] = useState({});
   const [ selectedChart, setSelectedChart ] = useState("");
 
+  const { onFetchInsights, onFetchSalesData } = props;
+
   useEffect(() => {
-    props.onFetchInsights()
-    props.onFetchSalesData()
-  }, [props.onFetchInsights, props.onFetchSalesData])
+    onFetchInsights();
+    onFetchSalesData();
+  }, [onFetchInsights, onFetchSalesData]);
 
   // Merge insights with sales data
   useEffect(() => {

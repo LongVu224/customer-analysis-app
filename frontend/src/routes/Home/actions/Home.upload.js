@@ -26,7 +26,6 @@ export const uploadFile = (saleData, files) => {
         dispatch(uploadFileStart());
         uploadServiceInstance.post('upload', saleData)
             .then(res => {
-            console.log("res: ", res)
             if (res.status === 201) {
                 dispatch(uploadFileSuccess(saleData));
             } else {

@@ -8,7 +8,11 @@ export default function Chart(props) {
         <XAxis dataKey={props.xaxisKey} />
         <YAxis />
         <Tooltip />
-        <Bar dataKey={props.dataKey} fill="#ff8489" />
+        {Array.isArray(props.dataKeys)
+          ? props.dataKeys.map((key, idx) => (
+              <Bar dataKey={key.key} fill={key.color || "#ff8489"} />
+            ))
+          : <Bar dataKey={props.dataKey} fill="#ff8489" />}
       </BarChart>
     </ResponsiveContainer>
   );
