@@ -1,0 +1,53 @@
+version: '3.1'
+services:
+  insights-service:
+    build:
+      context: /backend/insights-service
+      dockerfile: .dockerfile
+    networks:
+      - privatenet
+    hostname: insights-service
+    image: insights-service
+    ports:
+    - "9000:9000"
+
+  upload-service:
+    build:
+      context: /backend/upload-service
+      dockerfile: .dockerfile
+    networks:
+      - privatenet
+    hostname: upload-service
+    image: upload-service
+    ports:
+    - "8000:8000"
+
+  monitor-service: 
+    build:
+      context: /backend/monitor-service
+      dockerfile: .dockerfile
+    networks:
+      - privatenet
+    hostname: monitor-service
+    image: monitor-service
+    ports:
+    - "8999:8999"
+
+  app:
+    build:
+      context: /frontend
+      dockerfile: .dockerfile
+    networks:
+      - privatenet
+    hostname: app
+    image: app
+    ports:
+    - "3000:3000"
+    environment:
+      - "REACT_APP_INSIGHTS_SERVICE_ENDPOINT=http://localhost:9000"
+      - "REACT_APP_UPLOAD_SERVICE_ENDPOINT=http://localhost:8000"
+      - "REACT_APP_MONITOR_SERVICE_ENDPOINT=http://localhost:8999"
+
+networks:
+  privatenet:
+    driver: bridge
