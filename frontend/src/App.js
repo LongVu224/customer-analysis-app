@@ -6,6 +6,7 @@ import { Routes, Route } from 'react-router-dom';
 import Home from './routes/Home';
 import Insights from './routes/Insights';
 import Monitor from './routes/Monitor';
+import './App.css';
 
 const useOnClickOutside = (ref, handler) => {
   React.useEffect(() => {
@@ -27,17 +28,27 @@ function App() {
   useOnClickOutside(node, () => setOpen(false));
 
   return (
-    <div>
+    <div className="App">
       <ScrollToTop />
+      
+      {/* Navigation */}
+      <Burger open={open} setOpen={setOpen} />
+      <div ref={node}>
+        <Menu open={open} setOpen={setOpen} />
+      </div>
+      
+      {/* Overlay when menu is open */}
+      <div 
+        className={`menu-overlay ${open ? 'active' : ''}`} 
+        onClick={() => setOpen(false)} 
+      />
+      
+      {/* Routes */}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/Insights" element={<Insights />} />
         <Route path="/Monitor" element={<Monitor />} />
       </Routes>
-      <div ref={node}>
-        <Burger open={open} setOpen={setOpen} />
-        <Menu open={open} setOpen={setOpen} />
-      </div>
     </div>
   );
 }

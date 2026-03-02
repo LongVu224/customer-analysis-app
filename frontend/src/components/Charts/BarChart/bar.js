@@ -1,18 +1,79 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
+// Modern gradient colors that match the app theme
+const CHART_COLORS = {
+  primary: '#818cf8',
+  secondary: '#38bdf8',
+  accent: '#a78bfa',
+  info: '#22d3ee',
+  success: '#34d399',
+  warning: '#fbbf24',
+  error: '#f87171',
+};
+
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div style={{
+        background: 'rgba(15, 23, 42, 0.95)',
+        border: '1px solid rgba(255, 255, 255, 0.1)',
+        borderRadius: '8px',
+        padding: '12px 16px',
+        boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
+      }}>
+        <p style={{ color: 'white', fontWeight: 600, marginBottom: '8px' }}>{label}</p>
+        {payload.map((entry, index) => (
+          <p key={index} style={{ color: entry.color, margin: '4px 0' }}>
+            {entry.name}: {entry.value.toLocaleString()}
+          </p>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
+
 export default function Chart(props) {
   return (
     <ResponsiveContainer width="100%" height={props.height ? props.height : 800}>
       <BarChart data={props.data}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey={props.xaxisKey} />
-        <YAxis />
-        <Tooltip />
+        <defs>
+          <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#818cf8" stopOpacity={1} />
+            <stop offset="100%" stopColor="#6366f1" stopOpacity={0.8} />
+          </linearGradient>
+          <linearGradient id="barGradientSecondary" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#38bdf8" stopOpacity={1} />
+            <stop offset="100%" stopColor="#0ea5e9" stopOpacity={0.8} />
+          </linearGradient>
+          <linearGradient id="barGradientError" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#f87171" stopOpacity={1} />
+            <stop offset="100%" stopColor="#ef4444" stopOpacity={0.8} />
+          </linearGradient>
+        </defs>
+        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+        <XAxis 
+          dataKey={props.xaxisKey} 
+          stroke="rgba(255,255,255,0.5)"
+          tick={{ fill: 'rgba(255,255,255,0.7)', fontSize: 12 }}
+          axisLine={{ stroke: 'rgba(255,255,255,0.2)' }}
+        />
+        <YAxis 
+          stroke="rgba(255,255,255,0.5)"
+          tick={{ fill: 'rgba(255,255,255,0.7)', fontSize: 12 }}
+          axisLine={{ stroke: 'rgba(255,255,255,0.2)' }}
+        />
+        <Tooltip content={<CustomTooltip />} />
         {Array.isArray(props.dataKeys)
           ? props.dataKeys.map((key, idx) => (
-              <Bar dataKey={key.key} fill={key.color || "#ff8489"} />
+              <Bar 
+                key={idx}
+                dataKey={key.key} 
+                fill={key.key === 'Error' ? 'url(#barGradientError)' : (idx === 0 ? 'url(#barGradient)' : 'url(#barGradientSecondary)')}
+                radius={[4, 4, 0, 0]}
+              />
             ))
-          : <Bar dataKey={props.dataKey} fill="#ff8489" />}
+          : <Bar dataKey={props.dataKey} fill="url(#barGradient)" radius={[4, 4, 0, 0]} />}
       </BarChart>
     </ResponsiveContainer>
   );

@@ -1,55 +1,49 @@
 import React from "react";
 import styled from "styled-components";
+import { FiMenu } from "react-icons/fi";
 
 const StyledBurger = styled.button`
-  position: absolute;
-  top: 5%;
-  left: 2rem;
+  position: fixed;
+  top: 1.5rem;
+  left: 1.5rem;
   display: flex;
-  flex-direction: column;
-  justify-content: space-around;
-  width: 2rem;
-  height: 2rem;
-  background: transparent;
-  border: none;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
   cursor: pointer;
-  padding: 0;
-  z-index: 10;
+  z-index: 99;
+  transition: all 0.2s ease;
+  color: white;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: scale(1.05);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
 
   &:focus {
     outline: none;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
   }
 
-  & > div {
-    width: 2rem;
-    height: 0.25rem;
-    background: ${({ open }) => (open ? "#0D0C1D" : "#EFFFFA")};
-    border-radius: 10px;
-    transition: all 0.3s linear;
-    position: relative;
-    transform-origin: 1px;
-  }
-
-  & > div:first-child {
-    transform: ${({ open }) => (open ? "rotate(45deg)" : "rotate(0)")};
-  }
-
-  & > div:nth-child(2) {
-    opacity: ${({ open }) => (open ? "0" : "1")};
-    transform: ${({ open }) => (open ? "translateX(20px)" : "translateX(0)")};
-  }
-
-  & > div:nth-child(3) {
-    transform: ${({ open }) => (open ? "rotate(-45deg)" : "rotate(0)")};
+  svg {
+    font-size: 1.5rem;
   }
 `;
 
 const Burger = ({ open, setOpen }) => {
   return (
-    <StyledBurger open={open} onClick={() => setOpen(!open)}>
-      <div />
-      <div />
-      <div />
+    <StyledBurger open={open} onClick={() => setOpen(!open)} aria-label="Toggle menu">
+      <FiMenu />
     </StyledBurger>
   );
 };

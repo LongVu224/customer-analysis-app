@@ -1,81 +1,205 @@
+// Modern Insights Page
 .insights-root {
-  background-image: linear-gradient( rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),url('/assets/images/background.jpg');
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: cover;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  height:auto;
   min-height: 100vh;
-  width:100%;
-  //background:linear-gradient(to left, rgb(28, 27, 27), white);
-  margin: 0;
-  padding:0;
-  box-sizing:border-box;
-  color:white;
-}
-
-.wrap {
-  background-color: white;
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
   justify-content: center;
-  align-items: center;
-}
-
-.wrap {
-  border-radius: 25px;
-  width: 1260px;
-  margin-left: 42px auto;
-  margin-top: 10px;
-  margin-bottom: 10px;
+  padding: 2rem;
+  padding-top: 5rem;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  background-attachment: fixed;
   position: relative;
-  font-family: 'Montserrat', sans-serif;
-  overflow: hidden;
-  padding: 20px;
-  background-color: rgba( 255,255, 255, 0.3); /* transparent white */
-  h1 {
-    font-family: 'Quicksand', sans-serif;
-    font-weight: 500;
-    text-align: center;
-    font-size: 50px;
-    margin-top: 0px;
-    letter-spacing: 0.05em;
+  
+  &::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(139, 92, 246, 0.05) 100%);
+    pointer-events: none;
   }
 }
 
-.insights-menu select {
-  height: 60px;
-  padding: 10px;
-  font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 15px;
-  background-color: white;
-  color: #333;
-  transition: border 0.3s ease;
-}
-
-.insights-menu select:focus {
-  border-color: #ff8489;
-  outline: none;
-  box-shadow: 0 0 5px rgba(255, 132, 137, 0.5);
-}
-
-.insights-chart-box {
+// Main container
+.wrap {
   width: 100%;
-  margin: 30px auto;
-  padding: 20px;
-  border-radius: 15px;
-  background-color: #ffffff;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  color: #333;
+  max-width: 1200px;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1.5rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
+  position: relative;
+  z-index: 1;
+  animation: fadeIn 0.5s ease-out;
+  margin-bottom: 2rem;
+  
+  h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    text-align: center;
+    margin: 0 0 2rem;
+    letter-spacing: -0.02em;
+    position: relative;
+    
+    span {
+      background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.8) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      position: relative;
+      
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: -8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(90deg, #6366f1, #8b5cf6, #a78bfa);
+        border-radius: 2px;
+      }
+    }
+  }
 }
 
-.insights-chart-box h4 {
-  text-align: center;
-  margin-bottom: 20px;
-  font-size: 1.5rem;
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
+// Select dropdowns
+.insights-menu {
+  margin-bottom: 1.5rem;
+  
+  select {
+    width: 100%;
+    height: 56px;
+    padding: 0 1rem;
+    font-size: 1rem;
+    font-family: inherit;
+    color: white;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 0.75rem;
+    outline: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.5)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6,9 12,15 18,9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    
+    &:focus {
+      background-color: rgba(255, 255, 255, 0.12);
+      border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    }
+    
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    option {
+      background: #1f2937;
+      color: white;
+      padding: 0.5rem;
+    }
+  }
+}
+
+// Chart boxes
+.insights-chart-box {
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  
+  h4 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: white;
+    text-align: center;
+    margin: 0 0 1.5rem;
+    
+    &::after {
+      content: '';
+      display: block;
+      width: 60px;
+      height: 3px;
+      background: linear-gradient(90deg, #6366f1, #8b5cf6);
+      margin: 0.75rem auto 0;
+      border-radius: 2px;
+    }
+  }
+  
+  // Override Recharts colors
+  .recharts-cartesian-grid-horizontal line,
+  .recharts-cartesian-grid-vertical line {
+    stroke: rgba(255, 255, 255, 0.1);
+  }
+  
+  .recharts-text {
+    fill: rgba(255, 255, 255, 0.6);
+  }
+  
+  .recharts-tooltip-wrapper {
+    .recharts-default-tooltip {
+      background: rgba(15, 23, 42, 0.95) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      border-radius: 8px !important;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+      
+      .recharts-tooltip-label {
+        color: white !important;
+      }
+      
+      .recharts-tooltip-item {
+        color: rgba(255, 255, 255, 0.8) !important;
+      }
+    }
+  }
+}
+
+// Revenue display
 .insights-revenue {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .insights-root {
+    padding: 1rem;
+    padding-top: 5rem;
+  }
+  
+  .wrap {
+    padding: 1.5rem;
+    
+    h1 {
+      font-size: 1.75rem;
+    }
+  }
+}
+
+@media (max-width: 576px) {
+  .wrap h1 {
+    font-size: 1.5rem;
+  }
 }

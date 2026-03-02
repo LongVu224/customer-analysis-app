@@ -1,6 +1,7 @@
 param projectBaseName string
 param storageAccountName string = replace('${projectBaseName}stor', '-', '')
 param keyVaultName string = '${projectBaseName}-kv'
+param keyVaultLocation string = 'westeurope'
 
 // Monitoring parameters
 param appInsightsName string = '${projectBaseName}-ai'
@@ -35,6 +36,7 @@ module keyVault 'modular/key-vault.bicep' = {
   name: 'keyVault-${deploymentTimestamp}'
   params: {
     keyVaultName: keyVaultName
+    location: keyVaultLocation
   }
 }
 

@@ -247,6 +247,9 @@ Run all services locally using Docker Compose:
 # Start all services (MongoDB + 3 backend services + frontend)
 docker-compose up --build
 
+# or run in development mode with hot reload (if configured)
+docker-compose -f docker-compose.dev.yaml up
+
 # Or run in detached mode
 docker-compose up -d --build
 
