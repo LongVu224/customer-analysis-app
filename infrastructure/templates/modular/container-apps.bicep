@@ -2,9 +2,10 @@ param location string = resourceGroup().location
 param environmentName string
 param logAnalyticsWorkspaceId string
 
-// Container Registry configuration
-param containerRegistryLoginServer string
-param containerRegistryName string
+// Docker Hub configuration
+param dockerHubUsername string
+@secure()
+param dockerHubPassword string
 
 // Container App names
 param frontendAppName string
@@ -14,28 +15,6 @@ param monitorServiceAppName string
 
 // Image tags (default to 'latest', override in pipeline)
 param imageTag string = 'latest'
-
-// Reference to existing ACR for role assignment
-resource existingAcr 'Microsoft.ContainerRegistry/registries@2023-07-01' existing = {
-  name: containerRegistryName
-}
-
-// User-assigned managed identity for pulling images from ACR
-resource containerAppIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
-  name: '${environmentName}-identity'
-  location: location
-}
-
-// Role assignment: AcrPull role for the managed identity
-resource acrPullRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(existingAcr.id, containerAppIdentity.id, 'acrpull')
-  scope: existingAcr
-  properties: {
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7f951dda-4ed3-4680-a7ca-43fe172d538d')
-    principalId: containerAppIdentity.properties.principalId
-    principalType: 'ServicePrincipal'
-  }
-}
 
 // Container Apps Environment
 resource containerAppsEnvironment 'Microsoft.App/managedEnvironments@2024-03-01' = {
@@ -56,15 +35,15 @@ resource containerAppsEnvironment 'Microsoft.App/managedEnvironments@2024-03-01'
 resource uploadServiceApp 'Microsoft.App/containerApps@2024-03-01' = {
   name: uploadServiceAppName
   location: location
-  identity: {
-    type: 'UserAssigned'
-    userAssignedIdentities: {
-      '${containerAppIdentity.id}': {}
-    }
-  }
   properties: {
     managedEnvironmentId: containerAppsEnvironment.id
     configuration: {
+      secrets: [
+        {
+          name: 'docker-hub-password'
+          value: dockerHubPassword
+        }
+      ]
       ingress: {
         external: true
         targetPort: 8000
@@ -78,8 +57,9 @@ resource uploadServiceApp 'Microsoft.App/containerApps@2024-03-01' = {
       }
       registries: [
         {
-          server: containerRegistryLoginServer
-          identity: containerAppIdentity.id
+          server: 'docker.io'
+          username: dockerHubUsername
+          passwordSecretRef: 'docker-hub-password'
         }
       ]
     }
@@ -87,7 +67,7 @@ resource uploadServiceApp 'Microsoft.App/containerApps@2024-03-01' = {
       containers: [
         {
           name: 'upload-service'
-          image: '${containerRegistryLoginServer}/upload-service:${imageTag}'
+          image: 'docker.io/${dockerHubUsername}/upload-service:${imageTag}'
           resources: {
             cpu: json('0.5')
             memory: '1Gi'
@@ -120,24 +100,21 @@ resource uploadServiceApp 'Microsoft.App/containerApps@2024-03-01' = {
       }
     }
   }
-  dependsOn: [
-    acrPullRoleAssignment
-  ]
 }
 
 // Insights Service - External ingress (backend API)
 resource insightsServiceApp 'Microsoft.App/containerApps@2024-03-01' = {
   name: insightsServiceAppName
   location: location
-  identity: {
-    type: 'UserAssigned'
-    userAssignedIdentities: {
-      '${containerAppIdentity.id}': {}
-    }
-  }
   properties: {
     managedEnvironmentId: containerAppsEnvironment.id
     configuration: {
+      secrets: [
+        {
+          name: 'docker-hub-password'
+          value: dockerHubPassword
+        }
+      ]
       ingress: {
         external: true
         targetPort: 9000
@@ -151,8 +128,9 @@ resource insightsServiceApp 'Microsoft.App/containerApps@2024-03-01' = {
       }
       registries: [
         {
-          server: containerRegistryLoginServer
-          identity: containerAppIdentity.id
+          server: 'docker.io'
+          username: dockerHubUsername
+          passwordSecretRef: 'docker-hub-password'
         }
       ]
     }
@@ -160,7 +138,7 @@ resource insightsServiceApp 'Microsoft.App/containerApps@2024-03-01' = {
       containers: [
         {
           name: 'insights-service'
-          image: '${containerRegistryLoginServer}/insights-service:${imageTag}'
+          image: 'docker.io/${dockerHubUsername}/insights-service:${imageTag}'
           resources: {
             cpu: json('0.5')
             memory: '1Gi'
@@ -193,24 +171,21 @@ resource insightsServiceApp 'Microsoft.App/containerApps@2024-03-01' = {
       }
     }
   }
-  dependsOn: [
-    acrPullRoleAssignment
-  ]
 }
 
 // Monitor Service - External ingress (backend API)
 resource monitorServiceApp 'Microsoft.App/containerApps@2024-03-01' = {
   name: monitorServiceAppName
   location: location
-  identity: {
-    type: 'UserAssigned'
-    userAssignedIdentities: {
-      '${containerAppIdentity.id}': {}
-    }
-  }
   properties: {
     managedEnvironmentId: containerAppsEnvironment.id
     configuration: {
+      secrets: [
+        {
+          name: 'docker-hub-password'
+          value: dockerHubPassword
+        }
+      ]
       ingress: {
         external: true
         targetPort: 8999
@@ -224,8 +199,9 @@ resource monitorServiceApp 'Microsoft.App/containerApps@2024-03-01' = {
       }
       registries: [
         {
-          server: containerRegistryLoginServer
-          identity: containerAppIdentity.id
+          server: 'docker.io'
+          username: dockerHubUsername
+          passwordSecretRef: 'docker-hub-password'
         }
       ]
     }
@@ -233,7 +209,7 @@ resource monitorServiceApp 'Microsoft.App/containerApps@2024-03-01' = {
       containers: [
         {
           name: 'monitor-service'
-          image: '${containerRegistryLoginServer}/monitor-service:${imageTag}'
+          image: 'docker.io/${dockerHubUsername}/monitor-service:${imageTag}'
           resources: {
             cpu: json('0.5')
             memory: '1Gi'
@@ -266,24 +242,21 @@ resource monitorServiceApp 'Microsoft.App/containerApps@2024-03-01' = {
       }
     }
   }
-  dependsOn: [
-    acrPullRoleAssignment
-  ]
 }
 
 // Frontend - External ingress (public facing)
 resource frontendApp 'Microsoft.App/containerApps@2024-03-01' = {
   name: frontendAppName
   location: location
-  identity: {
-    type: 'UserAssigned'
-    userAssignedIdentities: {
-      '${containerAppIdentity.id}': {}
-    }
-  }
   properties: {
     managedEnvironmentId: containerAppsEnvironment.id
     configuration: {
+      secrets: [
+        {
+          name: 'docker-hub-password'
+          value: dockerHubPassword
+        }
+      ]
       ingress: {
         external: true
         targetPort: 3000
@@ -297,8 +270,9 @@ resource frontendApp 'Microsoft.App/containerApps@2024-03-01' = {
       }
       registries: [
         {
-          server: containerRegistryLoginServer
-          identity: containerAppIdentity.id
+          server: 'docker.io'
+          username: dockerHubUsername
+          passwordSecretRef: 'docker-hub-password'
         }
       ]
     }
@@ -306,7 +280,7 @@ resource frontendApp 'Microsoft.App/containerApps@2024-03-01' = {
       containers: [
         {
           name: 'frontend'
-          image: '${containerRegistryLoginServer}/frontend:${imageTag}'
+          image: 'docker.io/${dockerHubUsername}/frontend:${imageTag}'
           resources: {
             cpu: json('0.5')
             memory: '1Gi'
@@ -343,9 +317,6 @@ resource frontendApp 'Microsoft.App/containerApps@2024-03-01' = {
       }
     }
   }
-  dependsOn: [
-    acrPullRoleAssignment
-  ]
 }
 
 output environmentId string = containerAppsEnvironment.id

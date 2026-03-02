@@ -1,0 +1,90 @@
+version: '3.8'
+
+services:
+  # MongoDB database
+  mongodb:
+    image: mongo:7
+    container_name: customer-analysis-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: customer-analysis
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Upload Service
+  upload-service:
+    build:
+      context: ./backend/upload-service
+      dockerfile: .dockerfile
+    container_name: customer-analysis-upload
+    ports:
+      - "8000:8000"
+    environment:
+      - NODE_ENV=development
+      - PORT=8000
+      - DB_CONNECTION_STRING=mongodb://mongodb:27017/customer-analysis
+      - STORAGE_NAME=${STORAGE_NAME:-}
+      - STORAGE_KEY=${STORAGE_KEY:-}
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+  # Insights Service
+  insights-service:
+    build:
+      context: ./backend/insights-service
+      dockerfile: .dockerfile
+    container_name: customer-analysis-insights
+    ports:
+      - "9000:9000"
+    environment:
+      - NODE_ENV=development
+      - PORT=9000
+      - DB_CONNECTION_STRING=mongodb://mongodb:27017/customer-analysis
+      - STORAGE_NAME=${STORAGE_NAME:-}
+      - STORAGE_KEY=${STORAGE_KEY:-}
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+  # Monitor Service
+  monitor-service:
+    build:
+      context: ./backend/monitor-service
+      dockerfile: .dockerfile
+    container_name: customer-analysis-monitor
+    ports:
+      - "8999:8999"
+    environment:
+      - NODE_ENV=development
+      - PORT=8999
+      - DB_CONNECTION_STRING=mongodb://mongodb:27017/customer-analysis
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: .dockerfile
+      args:
+        - REACT_APP_UPLOAD_SERVICE_ENDPOINT=http://localhost:8000
+        - REACT_APP_INSIGHTS_SERVICE_ENDPOINT=http://localhost:9000
+        - REACT_APP_MONITOR_SERVICE_ENDPOINT=http://localhost:8999
+    container_name: customer-analysis-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - upload-service
+      - insights-service
+      - monitor-service
+
+volumes:
+  mongodb_data:

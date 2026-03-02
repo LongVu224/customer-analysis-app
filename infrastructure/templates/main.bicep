@@ -6,8 +6,10 @@ param keyVaultName string = '${projectBaseName}-kv'
 param appInsightsName string = '${projectBaseName}-ai'
 param logAnalyticsWorkspaceName string = '${projectBaseName}-law'
 
-// Container Registry parameters
-param containerRegistryName string = replace('${projectBaseName}acr', '-', '')
+// Docker Hub parameters
+param dockerHubUsername string
+@secure()
+param dockerHubPassword string
 
 // Container Apps parameters
 param containerAppsEnvironmentName string = '${projectBaseName}-env'
@@ -38,18 +40,12 @@ module monitoring 'modular/monitoring.bicep' = {
   }
 }
 
-module containerRegistry 'modular/container-registry.bicep' = {
-  params: {
-    containerRegistryName: containerRegistryName
-  }
-}
-
 module containerApps 'modular/container-apps.bicep' = {
   params: {
     environmentName: containerAppsEnvironmentName
     logAnalyticsWorkspaceId: monitoring.outputs.logAnalyticsWorkspaceId
-    containerRegistryLoginServer: containerRegistry.outputs.loginServer
-    containerRegistryName: containerRegistry.outputs.registryName
+    dockerHubUsername: dockerHubUsername
+    dockerHubPassword: dockerHubPassword
     frontendAppName: frontendAppName
     uploadServiceAppName: uploadServiceAppName
     insightsServiceAppName: insightsServiceAppName
@@ -59,8 +55,6 @@ module containerApps 'modular/container-apps.bicep' = {
 }
 
 // Outputs for deployment and configuration
-output containerRegistryLoginServer string = containerRegistry.outputs.loginServer
-output containerRegistryName string = containerRegistry.outputs.registryName
 output frontendUrl string = containerApps.outputs.frontendUrl
 output uploadServiceFqdn string = containerApps.outputs.uploadServiceFqdn
 output insightsServiceFqdn string = containerApps.outputs.insightsServiceFqdn

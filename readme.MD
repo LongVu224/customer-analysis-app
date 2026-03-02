@@ -45,8 +45,7 @@ Customer Analysis App enables businesses to upload, manage, and analyze customer
 │  │ :8000       │ │ :9000       │ │ :8999       │                │
 │  └─────────────┘ └─────────────┘ └─────────────┘                │
 │                                                                 │
-│  Azure Container Registry (ACR) ← Stores Docker images          │
-│  Managed Identity ← Secure image pulls                          │
+│  Docker Hub (docker.io/longvu224/*) ← Stores Docker images      │
 └─────────────────────────────────────────────────────────────────┘
          │
          ▼
@@ -61,7 +60,7 @@ Customer Analysis App enables businesses to upload, manage, and analyze customer
 - **Backend:** 3 Node.js microservices (upload, insights, monitor)
 - **Database:** MongoDB
 - **Storage:** Azure Storage Account
-- **Registry:** Azure Container Registry (ACR)
+- **Registry:** Docker Hub (free tier)
 - **Monitoring:** Azure Application Insights + Log Analytics
 - **Secrets:** Azure Key Vault
 
@@ -157,7 +156,6 @@ Infrastructure is managed as code using **Azure Bicep** templates.
 | Module | Description |
 |--------|-------------|
 | `main.bicep` | Main orchestration template |
-| `container-registry.bicep` | Azure Container Registry |
 | `container-apps.bicep` | Container Apps Environment + 4 apps |
 | `storage-account.bicep` | Azure Storage Account |
 | `key-vault.bicep` | Azure Key Vault |
@@ -167,7 +165,6 @@ Infrastructure is managed as code using **Azure Bicep** templates.
 
 ```
 customer-analysis-rg/
-├── customeranalysisacr          (Container Registry)
 ├── customer-analysis-env        (Container Apps Environment)
 │   ├── customer-analysis-frontend   (Frontend Container App)
 │   ├── customer-analysis-upload     (Upload Service)
@@ -177,6 +174,13 @@ customer-analysis-rg/
 ├── customer-analysis-law        (Log Analytics Workspace)
 ├── customeranalysisstorage      (Storage Account)
 └── customer-analysis-kv         (Key Vault)
+
+Docker Hub (external):
+└── docker.io/longvu224/         (Docker Hub repository)
+    ├── upload-service
+    ├── insights-service
+    ├── monitor-service
+    └── frontend
 ```
 
 ---
@@ -195,15 +199,17 @@ The pipeline (`infrastructure/pipeline.yaml`) automates the full deployment:
 │   Bicep      │    │   approval   │    │   Docker     │    │   Container  │
 │ • What-If    │    │ • Deploy     │    │   images     │    │   Apps       │
 │   preview    │    │   infra      │    │ • Push to    │    │              │
-│              │    │              │    │   ACR        │    │              │
+│              │    │              │    │   Docker Hub │    │              │
 └──────────────┘    └──────────────┘    └──────────────┘    └──────────────┘
 ```
 
 ### Prerequisites
 
 1. **Azure DevOps Service Connection**: `customer-analysis-connection`
-2. **Resource Group**: `customer-analysis-rg` (create beforehand)
-3. **Environment**: `customer-analysis` in Azure DevOps
+2. **Docker Hub Service Connection**: `docker-hub-connection` (Docker Registry type)
+3. **Pipeline Secret Variable**: `dockerHubPassword` (Docker Hub Access Token)
+4. **Resource Group**: `customer-analysis-rg` (create beforehand)
+5. **Environment**: `customer-analysis` in Azure DevOps
 
 ### Deploy Infrastructure Manually
 
@@ -214,35 +220,61 @@ az login
 # Create resource group
 az group create --name customer-analysis-rg --location westeurope
 
-# Deploy Bicep templates
+# Deploy Bicep templates (replace YOUR_DOCKER_HUB_TOKEN)
 az deployment group create \
   --resource-group customer-analysis-rg \
   --template-file infrastructure/templates/main.bicep \
-  --parameters infrastructure/templates/main.bicepparam
+  --parameters infrastructure/templates/main.bicepparam \
+  --parameters dockerHubPassword='YOUR_DOCKER_HUB_TOKEN'
 ```
 
 ### Build and Push Images Manually
 
 ```bash
-# Login to ACR
-az acr login --name customeranalysisacr
+# Login to Docker Hub
+docker login -u longvu224
 
 # Build and push (from project root)
-az acr build --registry customeranalysisacr --image upload-service:latest --file backend/upload-service/.dockerfile backend/upload-service
-az acr build --registry customeranalysisacr --image insights-service:latest --file backend/insights-service/.dockerfile backend/insights-service
-az acr build --registry customeranalysisacr --image monitor-service:latest --file backend/monitor-service/.dockerfile backend/monitor-service
-az acr build --registry customeranalysisacr --image frontend:latest --file frontend/.dockerfile frontend
+cd backend/upload-service && docker build -f .dockerfile -t longvu224/upload-service:latest . && docker push longvu224/upload-service:latest && cd ../..
+cd backend/insights-service && docker build -f .dockerfile -t longvu224/insights-service:latest . && docker push longvu224/insights-service:latest && cd ../..
+cd backend/monitor-service && docker build -f .dockerfile -t longvu224/monitor-service:latest . && docker push longvu224/monitor-service:latest && cd ../..
+cd frontend && docker build -f .dockerfile -t longvu224/frontend:latest . && docker push longvu224/frontend:latest && cd ..
 ```
 
 ### Local Development with Docker
 
-```bash
-# Build and run individual services
-cd backend/upload-service
-docker build -f .dockerfile -t upload-service .
-docker run -p 8000:8000 upload-service
+Run all services locally using Docker Compose:
 
-# Or use docker-compose for all services (create your own docker-compose.yaml)
+```bash
+# Start all services (MongoDB + 3 backend services + frontend)
+docker-compose up --build
+
+# Or run in detached mode
+docker-compose up -d --build
+
+# View logs
+docker-compose logs -f
+
+# Stop all services
+docker-compose down
+
+# Stop and remove volumes (clears database)
+docker-compose down -v
+```
+
+**Services available at:**
+| Service | URL |
+|---------|-----|
+| Frontend | http://localhost:3000 |
+| Upload Service | http://localhost:8000 |
+| Insights Service | http://localhost:9000 |
+| Monitor Service | http://localhost:8999 |
+| MongoDB | mongodb://localhost:27017 |
+
+**Optional:** Create a `.env` file in the project root for Azure Storage (if needed):
+```bash
+STORAGE_NAME=your_storage_account_name
+STORAGE_KEY=your_storage_account_key
 ```
 
 ---
