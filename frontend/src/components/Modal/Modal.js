@@ -1,7 +1,13 @@
 import React, { useRef, useEffect, useCallback } from 'react';
-import { useSpring, animated } from 'react-spring';
 import styled, { css } from 'styled-components';
 import { FiX, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
+
+// Animated wrapper using CSS transitions instead of react-spring
+const AnimatedWrapper = styled.div`
+  opacity: ${props => props.$show ? 1 : 0};
+  transform: ${props => props.$show ? 'scale(1)' : 'scale(0.9)'};
+  transition: opacity 0.3s ease, transform 0.3s ease;
+`;
 
 const Background = styled.div`
   width: 100%;
@@ -179,16 +185,6 @@ const ActionButton = styled.button`
 export const ModalConstruction = ({ showModal, setShowModal }) => {
   const modalRef = useRef();
 
-  const animation = useSpring({
-    config: {
-      duration: 300,
-      tension: 300,
-      friction: 20
-    },
-    opacity: showModal ? 1 : 0,
-    transform: showModal ? `scale(1)` : `scale(0.9)`
-  });
-
   const closeModal = e => {
     if (modalRef.current === e.target) {
       setShowModal(false);
@@ -216,7 +212,7 @@ export const ModalConstruction = ({ showModal, setShowModal }) => {
     <>
       {showModal ? (
         <Background onClick={closeModal} ref={modalRef}>
-          <animated.div style={animation}>
+          <AnimatedWrapper $show={showModal}>
             <ModalWrapper showModal={showModal}>
               <ModalImg src={"images/modal.jpg"} alt='camera' />
               <ModalContent>
@@ -230,7 +226,7 @@ export const ModalConstruction = ({ showModal, setShowModal }) => {
                 <FiX />
               </CloseModalButton>
             </ModalWrapper>
-          </animated.div>
+          </AnimatedWrapper>
         </Background>
       ) : null}
     </>
@@ -242,16 +238,6 @@ export const ModalInfo = ({ showModal, setShowModal, title, content, img, isErro
   
   // Auto-detect error state from title if not explicitly set
   const showAsError = isError ?? (title?.toLowerCase().includes('oops') || title?.toLowerCase().includes('error'));
-
-  const animation = useSpring({
-    config: {
-      duration: 300,
-      tension: 300,
-      friction: 20
-    },
-    opacity: showModal ? 1 : 0,
-    transform: showModal ? `scale(1)` : `scale(0.9)`
-  });
 
   const closeModal = e => {
     if (modalRef.current === e.target) {
@@ -280,7 +266,7 @@ export const ModalInfo = ({ showModal, setShowModal, title, content, img, isErro
     <>
       {showModal ? (
         <Background onClick={closeModal} ref={modalRef}>
-          <animated.div style={animation}>
+          <AnimatedWrapper $show={showModal}>
             <ModalInfoWrapper showModal={showModal}>
               <CloseModalButton
                 aria-label='Close modal'
@@ -299,7 +285,7 @@ export const ModalInfo = ({ showModal, setShowModal, title, content, img, isErro
                 </ActionButton>
               </ModalInfoContent>
             </ModalInfoWrapper>
-          </animated.div>
+          </AnimatedWrapper>
         </Background>
       ) : null}
     </>

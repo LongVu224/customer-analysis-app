@@ -1,16 +1,5 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-// Modern gradient colors that match the app theme
-const CHART_COLORS = {
-  primary: '#818cf8',
-  secondary: '#38bdf8',
-  accent: '#a78bfa',
-  info: '#22d3ee',
-  success: '#34d399',
-  warning: '#fbbf24',
-  error: '#f87171',
-};
-
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
@@ -23,8 +12,9 @@ const CustomTooltip = ({ active, payload, label }) => {
       }}>
         <p style={{ color: 'white', fontWeight: 600, marginBottom: '8px' }}>{label}</p>
         {payload.map((entry, index) => (
-          <p key={index} style={{ color: entry.color, margin: '4px 0' }}>
-            {entry.name}: {entry.value.toLocaleString()}
+          <p key={index} style={{ color: '#e2e8f0', margin: '4px 0' }}>
+            <span style={{ color: entry.color, marginRight: '6px' }}>●</span>
+            {entry.name}: <span style={{ fontWeight: 500 }}>{entry.value.toLocaleString()}</span>
           </p>
         ))}
       </div>

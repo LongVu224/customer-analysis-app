@@ -4,6 +4,7 @@ import BarChart from '../../components/Charts/BarChart/bar'
 import './Monitor.scss';
 
 const Monitor = (props) => {
+  const { onFetchProcessLog, monitor } = props;
   const [ selectedService, setSelectedService ] = useState("");
   const [ serviceLogs, setServiceLogs ] = useState([]);
 
@@ -13,16 +14,16 @@ const Monitor = (props) => {
   useEffect(() => {
     // Fetch initial process logs if a service is selected
     if (selectedService) {
-      props.onFetchProcessLog(selectedService);
+      onFetchProcessLog(selectedService);
     } else {
       setServiceLogs([]);
     }
-  }, [selectedService]);
+  }, [selectedService, onFetchProcessLog]);
 
   useEffect(() => {
-    if (props.monitor.processLogs && props.monitor.processLogs.length > 0) {
+    if (monitor.processLogs && monitor.processLogs.length > 0) {
       // Group logs by day and type
-      const logsByDayAndType = props.monitor.processLogs.reduce((acc, log) => {
+      const logsByDayAndType = monitor.processLogs.reduce((acc, log) => {
         const day = new Date(log.date).toLocaleDateString();
         const type = log.type;
         if (!acc[day]) acc[day] = { Information: 0, Error: 0 };
@@ -39,7 +40,7 @@ const Monitor = (props) => {
     } else {
       setServiceLogs([]);
     }
-  }, [props.monitor.processLogs]);
+  }, [monitor.processLogs]);
 
   return (
     <div className="monitor-root">
