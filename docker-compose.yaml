@@ -1,22 +1,6 @@
 version: '3.8'
 
 services:
-  # MongoDB database
-  mongodb:
-    image: mongo:7
-    container_name: customer-analysis-mongodb
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongodb_data:/data/db
-    environment:
-      MONGO_INITDB_DATABASE: customer-analysis
-    healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   # Upload Service
   upload-service:
     build:
@@ -25,15 +9,8 @@ services:
     container_name: customer-analysis-upload
     ports:
       - "8000:8000"
-    environment:
-      - NODE_ENV=development
-      - PORT=8000
-      - DB_CONNECTION_STRING=mongodb://mongodb:27017/customer-analysis
-      - STORAGE_NAME=${STORAGE_NAME:-}
-      - STORAGE_KEY=${STORAGE_KEY:-}
-    depends_on:
-      mongodb:
-        condition: service_healthy
+    env_file:
+      - ./backend/upload-service/.env
 
   # Insights Service
   insights-service:
@@ -43,15 +20,8 @@ services:
     container_name: customer-analysis-insights
     ports:
       - "9000:9000"
-    environment:
-      - NODE_ENV=development
-      - PORT=9000
-      - DB_CONNECTION_STRING=mongodb://mongodb:27017/customer-analysis
-      - STORAGE_NAME=${STORAGE_NAME:-}
-      - STORAGE_KEY=${STORAGE_KEY:-}
-    depends_on:
-      mongodb:
-        condition: service_healthy
+    env_file:
+      - ./backend/insights-service/.env
 
   # Monitor Service
   monitor-service:
@@ -61,13 +31,8 @@ services:
     container_name: customer-analysis-monitor
     ports:
       - "8999:8999"
-    environment:
-      - NODE_ENV=development
-      - PORT=8999
-      - DB_CONNECTION_STRING=mongodb://mongodb:27017/customer-analysis
-    depends_on:
-      mongodb:
-        condition: service_healthy
+    env_file:
+      - ./backend/monitor-service/.env
 
   # Frontend
   frontend:
@@ -85,6 +50,3 @@ services:
       - upload-service
       - insights-service
       - monitor-service
-
-volumes:
-  mongodb_data:

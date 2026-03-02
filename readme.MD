@@ -96,10 +96,10 @@ Customer Analysis App enables businesses to upload, manage, and analyze customer
 
 ### Setup & Run (Backend)
 
-```bash
+```powershell
 # Clone repository
 git clone https://github.com/your-org/Customer-Analysis-App.git
-cd Customer-Analysis-App/backend
+cd Customer-Analysis-App\backend
 
 # Direct to a service, for example insights-service
 cd insights-services
@@ -133,8 +133,8 @@ node app.js
 
 ### Setup & Run (Frontend)
 
-```bash
-cd ../frontend
+```powershell
+cd ..\frontend
 
 # Install dependencies
 npm install
@@ -213,7 +213,7 @@ The pipeline (`infrastructure/pipeline.yaml`) automates the full deployment:
 
 ### Deploy Infrastructure Manually
 
-```bash
+```powershell
 # Login to Azure
 az login
 
@@ -221,31 +221,29 @@ az login
 az group create --name customer-analysis-rg --location westeurope
 
 # Deploy Bicep templates (replace YOUR_DOCKER_HUB_TOKEN)
-az deployment group create \
-  --resource-group customer-analysis-rg \
-  --template-file infrastructure/templates/main.bicep \
-  --parameters infrastructure/templates/main.bicepparam \
+az deployment group create `
+  --resource-group customer-analysis-rg `
+  --template-file infrastructure/templates/main.bicep `
+  --parameters infrastructure/templates/main.bicepparam `
   --parameters dockerHubPassword='YOUR_DOCKER_HUB_TOKEN'
 ```
 
 ### Build and Push Images Manually
 
-```bash
+```powershell
 # Login to Docker Hub
 docker login -u longvu224
 
 # Build and push (from project root)
-cd backend/upload-service && docker build -f .dockerfile -t longvu224/upload-service:latest . && docker push longvu224/upload-service:latest && cd ../..
-cd backend/insights-service && docker build -f .dockerfile -t longvu224/insights-service:latest . && docker push longvu224/insights-service:latest && cd ../..
-cd backend/monitor-service && docker build -f .dockerfile -t longvu224/monitor-service:latest . && docker push longvu224/monitor-service:latest && cd ../..
-cd frontend && docker build -f .dockerfile -t longvu224/frontend:latest . && docker push longvu224/frontend:latest && cd ..
-```
-
+cd backend\upload-service; docker build -f .dockerfile -t longvu224/upload-service:latest .; docker push longvu224/upload-service:latest; cd ..\..  
+cd backend\insights-service; docker build -f .dockerfile -t longvu224/insights-service:latest .; docker push longvu224/insights-service:latest; cd ..\..
+cd backend\monitor-service; docker build -f .dockerfile -t longvu224/monitor-service:latest .; docker push longvu224/monitor-service:latest; cd ..\..
+cd frontend; docker build -f .dockerfile -t longvu224/frontend:latest .; docker push longvu224/frontend:latest; cd ..
 ### Local Development with Docker
 
 Run all services locally using Docker Compose:
 
-```bash
+```powershell
 # Start all services (MongoDB + 3 backend services + frontend)
 docker-compose up --build
 
@@ -272,7 +270,7 @@ docker-compose down -v
 | MongoDB | mongodb://localhost:27017 |
 
 **Optional:** Create a `.env` file in the project root for Azure Storage (if needed):
-```bash
+```powershell
 STORAGE_NAME=your_storage_account_name
 STORAGE_KEY=your_storage_account_key
 ```
