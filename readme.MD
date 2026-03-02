@@ -239,6 +239,13 @@ cd backend\upload-service; docker build -f .dockerfile -t longvu224/upload-servi
 cd backend\insights-service; docker build -f .dockerfile -t longvu224/insights-service:latest .; docker push longvu224/insights-service:latest; cd ..\..
 cd backend\monitor-service; docker build -f .dockerfile -t longvu224/monitor-service:latest .; docker push longvu224/monitor-service:latest; cd ..\..
 cd frontend; docker build -f .dockerfile -t longvu224/frontend:latest .; docker push longvu224/frontend:latest; cd ..
+
+# Update Container Apps to use new images
+az containerapp update --name customer-analysis-frontend --resource-group customer-analysis-rg --image "docker.io/longvu224/frontend:latest"
+az containerapp update --name customer-analysis-upload --resource-group customer-analysis-rg --image "docker.io/longvu224/upload-service:latest"
+az containerapp update --name customer-analysis-insights --resource-group customer-analysis-rg --image "docker.io/longvu224/insights-service:latest"
+az containerapp update --name customer-analysis-monitor --resource-group customer-analysis-rg --image "docker.io/longvu224/monitor-service:latest"
+
 ### Local Development with Docker
 
 Run all services locally using Docker Compose:
