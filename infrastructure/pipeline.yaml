@@ -1,0 +1,76 @@
+trigger:
+- main
+
+variables:
+  azureSubscription: 'zta-implementation-connection'
+  environmentName: 'zta-implementation'
+  resourceGroup: 'zta-implementation-rg'
+  templatePath: 'templates/main.bicep'
+  templateParameterPath: 'templates/parameters/main.bicepparam'
+
+jobs:
+- job: Validation
+  steps:
+  - checkout: self
+  - task: AzurePowerShell@5
+    displayName: Validate Bicep template
+    inputs:
+      azureSubscription: $(azureSubscription)
+      ScriptType: InlineScript
+      azurePowerShellVersion: LatestVersion
+      Inline: |
+        Test-AzResourceGroupDeployment `
+          -ResourceGroupName $(resourceGroup) `
+          -TemplateFile $(templatePath) `
+          -TemplateParameterFile $(templateParameterPath) `
+          -Mode Incremental
+
+  - task: AzurePowerShell@5
+    displayName: Check Bicep Deployment Plan
+    inputs:
+      azureSubscription: $(azureSubscription)
+      ScriptType: InlineScript
+      azurePowerShellVersion: LatestVersion
+      Inline: |
+        New-AzResourceGroupDeployment `
+          -ResourceGroupName $(resourceGroup) `
+          -TemplateFile $(templatePath) `
+          -TemplateParameterFile $(templateParameterPath) `
+          -Mode Incremental `
+          -WhatIf
+      
+- ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
+  - job: WaitForValidation
+    dependsOn: Validation
+    condition: succeeded()
+    displayName: Wait for manual approval
+    timeoutInMinutes: 4320
+    pool: server
+    steps:
+    - task: ManualValidation@0
+      inputs:
+        notifyUsers: 'vuhailong224@gmail.com'
+
+  - deployment: DeployInfra
+    displayName: Deploy infrastructure
+    environment: $(environmentName)
+    dependsOn: WaitForValidation
+    condition: succeeded()
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: AzurePowerShell@5
+            name: DeployInfraBicep
+            displayName: Deploy Bicep template
+            inputs:
+              azureSubscription: $(azureSubscription)
+              ScriptType: InlineScript
+              azurePowerShellVersion: LatestVersion
+              Inline: |
+                New-AzResourceGroupDeployment `
+                  -ResourceGroupName $(resourceGroup) `
+                  -TemplateFile $(templatePath) `
+                  -TemplateParameterFile $(templateParameterPath) `
+                  -Mode Incremental `
+                  -outVariable deployment
