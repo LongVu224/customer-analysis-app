@@ -13,7 +13,7 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
     return {
-        onUploadFile: (file) => dispatch(actions.uploadFile(file))
+        onUploadFile: (file, password) => dispatch(actions.uploadFile(file, password))
     };
 }
 

@@ -21,10 +21,14 @@ export const uploadFileStart = () => {
     }
 };
 
-export const uploadFile = (saleData, files) => {
+export const uploadFile = (saleData, password) => {
     return dispatch => {
         dispatch(uploadFileStart());
-        uploadServiceInstance.post('upload', saleData)
+        uploadServiceInstance.post('upload', saleData, {
+            headers: {
+                'x-upload-password': password
+            }
+        })
             .then(res => {
             if (res.status === 201) {
                 dispatch(uploadFileSuccess(saleData));

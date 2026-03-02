@@ -49,6 +49,13 @@ const Insights = (props) => {
 
   return (
     <div className="insights-root">
+      {/* Animated background elements */}
+      <div className="bg-orbs">
+        <div className="orb orb-1"></div>
+        <div className="orb orb-2"></div>
+        <div className="orb orb-3"></div>
+      </div>
+
       {props.insights.loading ? 
         <Spinner /> : 
         <div className="wrap container">

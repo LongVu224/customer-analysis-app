@@ -2,13 +2,14 @@ import { useState, useEffect } from "react"
 import { FilePond } from 'react-filepond'
 import { ModalInfo } from '../../components/Modal'
 import { Bar } from '../../components/BarLoader'
-import { FiUploadCloud, FiFileText, FiType } from 'react-icons/fi'
+import { FiUploadCloud, FiFileText, FiType, FiLock } from 'react-icons/fi'
 import './Home.scss';
 import 'filepond/dist/filepond.min.css'
 
 const Home = (props) => {
     const [title, setTitle] = useState(null)
     const [description, setDescription] = useState(null)
+    const [password, setPassword] = useState('')
     const [files, setFiles] = useState([])
     const [showModal, setShowModal] = useState(false)
 
@@ -18,7 +19,7 @@ const Home = (props) => {
         fileData.append("title", title)
         fileData.append("description", description)
         files.map(file => fileData.append("saleFile", file))
-        props.onUploadFile(fileData)
+        props.onUploadFile(fileData, password)
     }
 
     useEffect(() => {
@@ -69,6 +70,17 @@ const Home = (props) => {
                             type="text" 
                             onChange={(e) => setDescription(e.target.value)} 
                             placeholder="Enter description"
+                        />
+                    </div>
+
+                    <div className="input-group">
+                        <FiLock className="input-icon" />
+                        <input  
+                            type="password" 
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)} 
+                            placeholder="Enter upload password"
+                            required
                         />
                     </div>
 

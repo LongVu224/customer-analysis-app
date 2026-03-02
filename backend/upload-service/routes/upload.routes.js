@@ -14,6 +14,26 @@ const { saveProcessLog } = require('../models/ProcessLog');
 // env configuration
 const config = require("../config/config");
 
+// Password protection middleware
+const checkPassword = (req, res, next) => {
+  const password = req.headers['x-upload-password'];
+  
+  if (!config.uploadPassword) {
+    // No password configured, allow all uploads
+    return next();
+  }
+  
+  if (!password) {
+    return res.status(401).json({ error: "Password required for upload" });
+  }
+  
+  if (password !== config.uploadPassword) {
+    return res.status(403).json({ error: "Invalid password" });
+  }
+  
+  next();
+};
+
 const resolveBlobName = (req, file) => {
   return new Promise((resolve, reject) => {
     const fileName = file.originalname.toLowerCase().split(' ').join('-');
@@ -53,7 +73,7 @@ if (process.env.NODE_ENV === 'test') {
 }
 
 // Create sales data endpoint
-router.post('/', upload.array('saleFile', 10), async (req, res, next) => {
+router.post('/', checkPassword, upload.array('saleFile', 10), async (req, res, next) => {
   if (!req.files || req.files.length === 0) {
     await saveProcessLog('upload-service', 'createSalesData', 'Error', 'No file uploaded');
     return res.status(400).json({ error: "No file uploaded." });

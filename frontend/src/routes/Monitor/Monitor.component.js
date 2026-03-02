@@ -43,6 +43,13 @@ const Monitor = (props) => {
 
   return (
     <div className="monitor-root">
+      {/* Animated background elements */}
+      <div className="bg-orbs">
+        <div className="orb orb-1"></div>
+        <div className="orb orb-2"></div>
+        <div className="orb orb-3"></div>
+      </div>
+
       <div className="wrap container">
         <h1 className="monitor-title"><span>Monitor</span></h1>
         <div className="monitor-group mb-3 monitor-menu">

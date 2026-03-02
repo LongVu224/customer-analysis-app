@@ -78,7 +78,7 @@ Customer Analysis App enables businesses to upload, manage, and analyze customer
 
 | Method | Endpoint                              | Description                              | Auth Required |
 |--------|---------------------------------------|------------------------------------------|--------------|
-| POST   | `/upload`                             | Upload sale data                         | No           |
+| POST   | `/upload`                             | Upload sale data                         | Password     |
 | GET    | `/upload`                             | List all sale records                    | No           |
 | GET    | `/upload/:id`                         | Load a sale record                       | No           |
 | GET    | `/insights`                           | Get all data insights                    | No           |
@@ -284,6 +284,23 @@ docker-compose down -v
 STORAGE_NAME=your_storage_account_name
 STORAGE_KEY=your_storage_account_key
 ```
+
+### Environment Variables
+
+#### Upload Service (`backend/upload-service/.env`)
+```
+STORAGE_NAME=your_storage_account_name
+STORAGE_KEY=your_storage_account_key
+DB_CONNECTION_STRING=mongodb://localhost:27017/customer-analysis
+UPLOAD_PASSWORD=your_secure_password
+```
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `STORAGE_NAME` | Yes | Azure Storage Account name |
+| `STORAGE_KEY` | Yes | Azure Storage Account key |
+| `DB_CONNECTION_STRING` | Yes | MongoDB connection string |
+| `UPLOAD_PASSWORD` | No | Password for upload protection (if empty, uploads are unrestricted) |
 
 ---
 
