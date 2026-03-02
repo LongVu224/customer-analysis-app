@@ -165,7 +165,7 @@ const Menu = ({ open, setOpen }) => {
       </NavLinks>
       
       <MenuFooter>
-        <p>Customer Analysis App v2.0</p>
+        <p>Sale Analysis App v2.0</p>
       </MenuFooter>
     </StyledMenu>
   );

@@ -2,12 +2,12 @@ trigger:
 - main
 
 variables:
-  azureSubscription: 'customer-analysis-connection'
-  environmentName: 'customer-analysis'
-  resourceGroup: 'customer-analysis-rg'
+  azureSubscription: 'sale-analysis-connection'
+  environmentName: 'sale-analysis'
+  resourceGroup: 'sale-analysis-rg'
   templatePath: 'infrastructure/templates/main.bicep'
   templateParameterPath: 'infrastructure/templates/main.bicepparam'
-  projectBaseName: 'customer-analysis'
+  projectBaseName: 'sale-analysis'
   
   # Docker Hub configuration
   dockerHubUsername: 'longvu224'

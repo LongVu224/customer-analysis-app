@@ -6,7 +6,7 @@ services:
     build:
       context: ./backend/upload-service
       dockerfile: .dockerfile
-    container_name: customer-analysis-upload
+    container_name: sale-analysis-upload
     ports:
       - "8000:8000"
     env_file:
@@ -17,7 +17,7 @@ services:
     build:
       context: ./backend/insights-service
       dockerfile: .dockerfile
-    container_name: customer-analysis-insights
+    container_name: sale-analysis-insights
     ports:
       - "9000:9000"
     env_file:
@@ -28,7 +28,7 @@ services:
     build:
       context: ./backend/monitor-service
       dockerfile: .dockerfile
-    container_name: customer-analysis-monitor
+    container_name: sale-analysis-monitor
     ports:
       - "8999:8999"
     env_file:
@@ -43,7 +43,7 @@ services:
         - REACT_APP_UPLOAD_SERVICE_ENDPOINT=http://localhost:8000
         - REACT_APP_INSIGHTS_SERVICE_ENDPOINT=http://localhost:9000
         - REACT_APP_MONITOR_SERVICE_ENDPOINT=http://localhost:8999
-    container_name: customer-analysis-frontend
+    container_name: sale-analysis-frontend
     ports:
       - "3000:3000"
     depends_on:

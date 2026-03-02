@@ -113,7 +113,7 @@ const TopNavBar = () => {
         <div className="logo-icon">
           <FiBarChart2 />
         </div>
-        <span className="logo-text">Customer Analysis</span>
+        <span className="logo-text">Sale Analysis</span>
       </Logo>
       
       <NavLinks>

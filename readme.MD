@@ -1,6 +1,6 @@
-# Customer Analysis App
+# Sale Analysis App
 
-A full-stack application for analyzing customer data, providing insights through a modern frontend and robust backend services. Deployed on **Azure Container Apps** with full CI/CD automation.
+A full-stack application for analyzing sale data, providing insights through a modern frontend and robust backend services. Deployed on **Azure Container Apps** with full CI/CD automation.
 
 ---
 
@@ -26,7 +26,7 @@ A full-stack application for analyzing customer data, providing insights through
 
 ## Overview
 
-Customer Analysis App enables businesses to upload, manage, and analyze customer data, visualize trends, and generate actionable insights.
+Sale Analysis App enables businesses to upload, manage, and analyze sale data, visualize trends, and generate actionable insights.
 
 ---
 
@@ -98,8 +98,8 @@ Customer Analysis App enables businesses to upload, manage, and analyze customer
 
 ```powershell
 # Clone repository
-git clone https://github.com/your-org/Customer-Analysis-App.git
-cd Customer-Analysis-App\backend
+git clone https://github.com/your-org/Sale-Analysis-App.git
+cd Sale-Analysis-App\backend
 
 # Direct to a service, for example insights-service
 cd insights-services
@@ -127,7 +127,7 @@ node app.js
 ### Features
 
 - User authentication (login/register)
-- Customer data upload and management
+- Sale data upload and management
 - Data visualization (charts, tables)
 - Insights dashboard
 
@@ -164,16 +164,16 @@ Infrastructure is managed as code using **Azure Bicep** templates.
 ### Azure Resources Created
 
 ```
-customer-analysis-rg/
-├── customer-analysis-env        (Container Apps Environment)
-│   ├── customer-analysis-frontend   (Frontend Container App)
-│   ├── customer-analysis-upload     (Upload Service)
-│   ├── customer-analysis-insights   (Insights Service)
-│   └── customer-analysis-monitor    (Monitor Service)
-├── customer-analysis-ai         (Application Insights)
-├── customer-analysis-law        (Log Analytics Workspace)
-├── customeranalysisstorage      (Storage Account)
-└── customer-analysis-kv         (Key Vault)
+sale-analysis-rg/
+├── sale-analysis-env        (Container Apps Environment)
+│   ├── sale-analysis-frontend   (Frontend Container App)
+│   ├── sale-analysis-upload     (Upload Service)
+│   ├── sale-analysis-insights   (Insights Service)
+│   └── sale-analysis-monitor    (Monitor Service)
+├── sale-analysis-ai         (Application Insights)
+├── sale-analysis-law        (Log Analytics Workspace)
+├── saleanalysisstorage      (Storage Account)
+└── sale-analysis-kv         (Key Vault)
 
 Docker Hub (external):
 └── docker.io/longvu224/         (Docker Hub repository)
@@ -205,11 +205,11 @@ The pipeline (`infrastructure/pipeline.yaml`) automates the full deployment:
 
 ### Prerequisites
 
-1. **Azure DevOps Service Connection**: `customer-analysis-connection`
+1. **Azure DevOps Service Connection**: `sale-analysis-connection`
 2. **Docker Hub Service Connection**: `docker-hub-connection` (Docker Registry type)
 3. **Pipeline Secret Variable**: `dockerHubPassword` (Docker Hub Access Token)
-4. **Resource Group**: `customer-analysis-rg` (create beforehand)
-5. **Environment**: `customer-analysis` in Azure DevOps
+4. **Resource Group**: `sale-analysis-rg` (create beforehand)
+5. **Environment**: `sale-analysis` in Azure DevOps
 
 ### Deploy Infrastructure Manually
 
@@ -218,11 +218,11 @@ The pipeline (`infrastructure/pipeline.yaml`) automates the full deployment:
 az login
 
 # Create resource group
-az group create --name customer-analysis-rg --location northeurope
+az group create --name sale-analysis-rg --location northeurope
 
 # Deploy Bicep templates (replace YOUR_DOCKER_HUB_TOKEN)
 az deployment group create `
-  --resource-group customer-analysis-rg `
+  --resource-group sale-analysis-rg `
   --template-file infrastructure/templates/main.bicep `
   --parameters infrastructure/templates/main.bicepparam `
   --parameters dockerHubPassword='YOUR_DOCKER_HUB_TOKEN'
@@ -241,10 +241,10 @@ cd backend\monitor-service; docker build -f .dockerfile -t longvu224/monitor-ser
 cd frontend; docker build -f .dockerfile -t longvu224/frontend:latest .; docker push longvu224/frontend:latest; cd ..
 
 # Update Container Apps to use new images
-az containerapp update --name customer-analysis-frontend --resource-group customer-analysis-rg --image "docker.io/longvu224/frontend:latest"
-az containerapp update --name customer-analysis-upload --resource-group customer-analysis-rg --image "docker.io/longvu224/upload-service:latest"
-az containerapp update --name customer-analysis-insights --resource-group customer-analysis-rg --image "docker.io/longvu224/insights-service:latest"
-az containerapp update --name customer-analysis-monitor --resource-group customer-analysis-rg --image "docker.io/longvu224/monitor-service:latest"
+az containerapp update --name sale-analysis-frontend --resource-group sale-analysis-rg --image "docker.io/longvu224/frontend:latest"
+az containerapp update --name sale-analysis-upload --resource-group sale-analysis-rg --image "docker.io/longvu224/upload-service:latest"
+az containerapp update --name sale-analysis-insights --resource-group sale-analysis-rg --image "docker.io/longvu224/insights-service:latest"
+az containerapp update --name sale-analysis-monitor --resource-group sale-analysis-rg --image "docker.io/longvu224/monitor-service:latest"
 
 ### Local Development with Docker
 

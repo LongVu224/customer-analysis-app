@@ -1,6 +1,6 @@
 using 'main.bicep'
 
-param projectBaseName = 'customer-analysis'
+param projectBaseName = 'sale-analysis'
 
 // Docker Hub credentials
 param dockerHubUsername = 'longvu224'
