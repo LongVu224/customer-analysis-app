@@ -1,5 +1,5 @@
 param projectBaseName string
-param storageAccountName string = replace('${projectBaseName}storage', '-', '')
+param storageAccountName string = replace('${projectBaseName}stor', '-', '')
 param keyVaultName string = '${projectBaseName}-kv'
 
 // Monitoring parameters
@@ -21,19 +21,25 @@ param monitorServiceAppName string = '${projectBaseName}-monitor'
 // Image tag - override during deployment
 param imageTag string = 'latest'
 
+// Deployment timestamp for unique nested deployment names
+param deploymentTimestamp string = utcNow('yyyyMMddHHmmss')
+
 module storageAccount 'modular/storage-account.bicep' = {
+  name: 'storageAccount-${deploymentTimestamp}'
   params: {
     storageAccountName: storageAccountName
   }
 }
 
 module keyVault 'modular/key-vault.bicep' = {
+  name: 'keyVault-${deploymentTimestamp}'
   params: {
     keyVaultName: keyVaultName
   }
 }
 
 module monitoring 'modular/monitoring.bicep' = {
+  name: 'monitoring-${deploymentTimestamp}'
   params: {
     appInsightsName: appInsightsName
     logAnalyticsWorkspaceName: logAnalyticsWorkspaceName
@@ -41,6 +47,7 @@ module monitoring 'modular/monitoring.bicep' = {
 }
 
 module containerApps 'modular/container-apps.bicep' = {
+  name: 'containerApps-${deploymentTimestamp}'
   params: {
     environmentName: containerAppsEnvironmentName
     logAnalyticsWorkspaceId: monitoring.outputs.logAnalyticsWorkspaceId

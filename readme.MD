@@ -218,7 +218,7 @@ The pipeline (`infrastructure/pipeline.yaml`) automates the full deployment:
 az login
 
 # Create resource group
-az group create --name customer-analysis-rg --location westeurope
+az group create --name customer-analysis-rg --location northeurope
 
 # Deploy Bicep templates (replace YOUR_DOCKER_HUB_TOKEN)
 az deployment group create `

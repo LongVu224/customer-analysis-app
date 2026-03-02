@@ -2,6 +2,6 @@ using 'main.bicep'
 
 param projectBaseName = 'customer-analysis'
 
-// Docker Hub credentials - passed from pipeline as secrets
+// Docker Hub credentials
 param dockerHubUsername = 'longvu224'
-// param dockerHubPassword is passed via --parameters in pipeline (secret)
+param dockerHubPassword = '' // Override via CLI: --parameters dockerHubPassword='YOUR_TOKEN'

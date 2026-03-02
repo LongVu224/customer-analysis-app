@@ -8,12 +8,12 @@ resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10
   location: location
   properties: {
     sku: {
-      name: 'Free'
+      name: 'PerGB2018'
     }
     workspaceCapping: {
       dailyQuotaGb: 1
     }
-    retentionInDays: 180
+    retentionInDays: 30
   }
 }
 
