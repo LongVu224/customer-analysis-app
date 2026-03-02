@@ -34,7 +34,14 @@ module monitoring 'modular/monitoring.bicep' = {
   }
 }
 
-// Backend App Services (Node.js microservices)
+// Frontend Static Web App (React) - deployed first to get URL for CORS
+module staticWebApp 'modular/static-web-app.bicep' = {
+  params: {
+    staticWebAppName: staticWebAppName
+  }
+}
+
+// Backend App Services (Node.js microservices) - with CORS for frontend
 module appService 'modular/app-service.bicep' = {
   params: {
     appServicePlanName: appServicePlanName
@@ -42,13 +49,10 @@ module appService 'modular/app-service.bicep' = {
     insightsServiceName: insightsServiceName
     monitorServiceName: monitorServiceName
     appInsightsInstrumentationKey: monitoring.outputs.appInsightsInstrumentationKey
-  }
-}
-
-// Frontend Static Web App (React)
-module staticWebApp 'modular/static-web-app.bicep' = {
-  params: {
-    staticWebAppName: staticWebAppName
+    allowedOrigins: [
+      staticWebApp.outputs.staticWebAppUrl
+      'http://localhost:3000' // For local development
+    ]
   }
 }
 

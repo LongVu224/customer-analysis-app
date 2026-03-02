@@ -7,6 +7,9 @@ param uploadServiceName string
 param insightsServiceName string
 param monitorServiceName string
 
+// CORS configuration - allowed origins for frontend
+param allowedOrigins array = []
+
 // App Service Plan for backend
 resource appServicePlan 'Microsoft.Web/serverfarms@2023-12-01' = {
   name: appServicePlanName
@@ -35,6 +38,10 @@ resource uploadService 'Microsoft.Web/sites@2023-12-01' = {
       alwaysOn: true
       minTlsVersion: '1.2'
       ftpsState: 'Disabled'
+      cors: {
+        allowedOrigins: allowedOrigins
+        supportCredentials: false
+      }
       appSettings: [
         {
           name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
@@ -66,6 +73,10 @@ resource insightsService 'Microsoft.Web/sites@2023-12-01' = {
       alwaysOn: true
       minTlsVersion: '1.2'
       ftpsState: 'Disabled'
+      cors: {
+        allowedOrigins: allowedOrigins
+        supportCredentials: false
+      }
       appSettings: [
         {
           name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
@@ -97,6 +108,10 @@ resource monitorService 'Microsoft.Web/sites@2023-12-01' = {
       alwaysOn: true
       minTlsVersion: '1.2'
       ftpsState: 'Disabled'
+      cors: {
+        allowedOrigins: allowedOrigins
+        supportCredentials: false
+      }
       appSettings: [
         {
           name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
