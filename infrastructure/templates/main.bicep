@@ -2,18 +2,22 @@ param projectBaseName string
 param storageAccountName string = replace('${projectBaseName}storage', '-', '')
 param keyVaultName string = '${projectBaseName}-kv'
 
-// monitoring parameters
+// Monitoring parameters
 param appInsightsName string = '${projectBaseName}-ai'
 param logAnalyticsWorkspaceName string = '${projectBaseName}-law'
 
-// App Service parameters (backend)
-param appServicePlanName string = '${projectBaseName}-asp'
-param uploadServiceName string = '${projectBaseName}-upload'
-param insightsServiceName string = '${projectBaseName}-insights'
-param monitorServiceName string = '${projectBaseName}-monitor'
+// Container Registry parameters
+param containerRegistryName string = replace('${projectBaseName}acr', '-', '')
 
-// Static Web App parameters (frontend)
-param staticWebAppName string = '${projectBaseName}-frontend'
+// Container Apps parameters
+param containerAppsEnvironmentName string = '${projectBaseName}-env'
+param frontendAppName string = '${projectBaseName}-frontend'
+param uploadServiceAppName string = '${projectBaseName}-upload'
+param insightsServiceAppName string = '${projectBaseName}-insights'
+param monitorServiceAppName string = '${projectBaseName}-monitor'
+
+// Image tag - override during deployment
+param imageTag string = 'latest'
 
 module storageAccount 'modular/storage-account.bicep' = {
   params: {
@@ -34,30 +38,30 @@ module monitoring 'modular/monitoring.bicep' = {
   }
 }
 
-// Frontend Static Web App (React) - deployed first to get URL for CORS
-module staticWebApp 'modular/static-web-app.bicep' = {
+module containerRegistry 'modular/container-registry.bicep' = {
   params: {
-    staticWebAppName: staticWebAppName
+    containerRegistryName: containerRegistryName
   }
 }
 
-// Backend App Services (Node.js microservices) - with CORS for frontend
-module appService 'modular/app-service.bicep' = {
+module containerApps 'modular/container-apps.bicep' = {
   params: {
-    appServicePlanName: appServicePlanName
-    uploadServiceName: uploadServiceName
-    insightsServiceName: insightsServiceName
-    monitorServiceName: monitorServiceName
-    appInsightsInstrumentationKey: monitoring.outputs.appInsightsInstrumentationKey
-    allowedOrigins: [
-      staticWebApp.outputs.staticWebAppUrl
-      'http://localhost:3000' // For local development
-    ]
+    environmentName: containerAppsEnvironmentName
+    logAnalyticsWorkspaceId: monitoring.outputs.logAnalyticsWorkspaceId
+    containerRegistryLoginServer: containerRegistry.outputs.loginServer
+    containerRegistryName: containerRegistry.outputs.registryName
+    frontendAppName: frontendAppName
+    uploadServiceAppName: uploadServiceAppName
+    insightsServiceAppName: insightsServiceAppName
+    monitorServiceAppName: monitorServiceAppName
+    imageTag: imageTag
   }
 }
 
 // Outputs for deployment and configuration
-output uploadServiceUrl string = appService.outputs.uploadServiceUrl
-output insightsServiceUrl string = appService.outputs.insightsServiceUrl
-output monitorServiceUrl string = appService.outputs.monitorServiceUrl
-output frontendUrl string = staticWebApp.outputs.staticWebAppUrl
+output containerRegistryLoginServer string = containerRegistry.outputs.loginServer
+output containerRegistryName string = containerRegistry.outputs.registryName
+output frontendUrl string = containerApps.outputs.frontendUrl
+output uploadServiceFqdn string = containerApps.outputs.uploadServiceFqdn
+output insightsServiceFqdn string = containerApps.outputs.insightsServiceFqdn
+output monitorServiceFqdn string = containerApps.outputs.monitorServiceFqdn

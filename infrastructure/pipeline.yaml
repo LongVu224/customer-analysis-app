@@ -2,75 +2,284 @@ trigger:
 - main
 
 variables:
-  azureSubscription: 'zta-implementation-connection'
-  environmentName: 'zta-implementation'
-  resourceGroup: 'zta-implementation-rg'
-  templatePath: 'templates/main.bicep'
-  templateParameterPath: 'templates/parameters/main.bicepparam'
+  azureSubscription: 'customer-analysis-connection'
+  environmentName: 'customer-analysis'
+  resourceGroup: 'customer-analysis-rg'
+  templatePath: 'infrastructure/templates/main.bicep'
+  templateParameterPath: 'infrastructure/templates/main.bicepparam'
+  projectBaseName: 'customer-analysis'
+  
+  # Container Registry (must match Bicep naming: replace('-', ''))
+  containerRegistryName: 'customeranalysisacr'
+  
+  # Container App names (must match Bicep outputs)
+  uploadServiceAppName: '$(projectBaseName)-upload'
+  insightsServiceAppName: '$(projectBaseName)-insights'
+  monitorServiceAppName: '$(projectBaseName)-monitor'
+  frontendAppName: '$(projectBaseName)-frontend'
+  
+  # Image tag - use Build.BuildId for versioning
+  imageTag: '$(Build.BuildId)'
 
-jobs:
-- job: Validation
-  steps:
-  - checkout: self
-  - task: AzurePowerShell@5
-    displayName: Validate Bicep template
-    inputs:
-      azureSubscription: $(azureSubscription)
-      ScriptType: InlineScript
-      azurePowerShellVersion: LatestVersion
-      Inline: |
-        Test-AzResourceGroupDeployment `
-          -ResourceGroupName $(resourceGroup) `
-          -TemplateFile $(templatePath) `
-          -TemplateParameterFile $(templateParameterPath) `
-          -Mode Incremental
+stages:
+# ============================================
+# Stage 1: Validate Infrastructure
+# ============================================
+- stage: ValidateInfra
+  displayName: 'Validate Infrastructure'
+  jobs:
+  - job: Validation
+    displayName: 'Validate Bicep Templates'
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - checkout: self
 
-  - task: AzurePowerShell@5
-    displayName: Check Bicep Deployment Plan
-    inputs:
-      azureSubscription: $(azureSubscription)
-      ScriptType: InlineScript
-      azurePowerShellVersion: LatestVersion
-      Inline: |
-        New-AzResourceGroupDeployment `
-          -ResourceGroupName $(resourceGroup) `
-          -TemplateFile $(templatePath) `
-          -TemplateParameterFile $(templateParameterPath) `
-          -Mode Incremental `
-          -WhatIf
-      
-- ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
-  - job: WaitForValidation
-    dependsOn: Validation
-    condition: succeeded()
-    displayName: Wait for manual approval
-    timeoutInMinutes: 4320
+    - task: AzureCLI@2
+      displayName: 'Validate Bicep template'
+      inputs:
+        azureSubscription: $(azureSubscription)
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          az deployment group validate \
+            --resource-group $(resourceGroup) \
+            --template-file $(templatePath) \
+            --parameters $(templateParameterPath)
+
+    - task: AzureCLI@2
+      displayName: 'What-If Deployment Preview'
+      inputs:
+        azureSubscription: $(azureSubscription)
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          az deployment group what-if \
+            --resource-group $(resourceGroup) \
+            --template-file $(templatePath) \
+            --parameters $(templateParameterPath)
+
+# ============================================
+# Stage 2: Deploy Infrastructure (ACR + Environment)
+# ============================================
+- stage: DeployInfra
+  displayName: 'Deploy Infrastructure'
+  dependsOn: ValidateInfra
+  condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'main'))
+  jobs:
+  - job: WaitForApproval
+    displayName: 'Wait for Manual Approval'
     pool: server
+    timeoutInMinutes: 4320
     steps:
     - task: ManualValidation@0
       inputs:
         notifyUsers: 'vuhailong224@gmail.com'
+        instructions: 'Review the What-If output and approve infrastructure deployment'
 
-  - deployment: DeployInfra
-    displayName: Deploy infrastructure
+  - deployment: DeployInfrastructure
+    displayName: 'Deploy Bicep Templates'
+    dependsOn: WaitForApproval
     environment: $(environmentName)
-    dependsOn: WaitForValidation
-    condition: succeeded()
+    pool:
+      vmImage: 'ubuntu-latest'
     strategy:
       runOnce:
         deploy:
           steps:
-          - task: AzurePowerShell@5
-            name: DeployInfraBicep
-            displayName: Deploy Bicep template
+          - checkout: self
+
+          - task: AzureCLI@2
+            name: DeployBicep
+            displayName: 'Deploy Infrastructure'
             inputs:
               azureSubscription: $(azureSubscription)
-              ScriptType: InlineScript
-              azurePowerShellVersion: LatestVersion
-              Inline: |
-                New-AzResourceGroupDeployment `
-                  -ResourceGroupName $(resourceGroup) `
-                  -TemplateFile $(templatePath) `
-                  -TemplateParameterFile $(templateParameterPath) `
-                  -Mode Incremental `
-                  -outVariable deployment
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                az deployment group create \
+                  --resource-group $(resourceGroup) \
+                  --template-file $(templatePath) \
+                  --parameters $(templateParameterPath) \
+                  --query 'properties.outputs' \
+                  --output json > deployment-outputs.json
+                
+                # Extract outputs for subsequent stages
+                ACR_LOGIN_SERVER=$(cat deployment-outputs.json | jq -r '.containerRegistryLoginServer.value')
+                UPLOAD_FQDN=$(cat deployment-outputs.json | jq -r '.uploadServiceFqdn.value')
+                INSIGHTS_FQDN=$(cat deployment-outputs.json | jq -r '.insightsServiceFqdn.value')
+                MONITOR_FQDN=$(cat deployment-outputs.json | jq -r '.monitorServiceFqdn.value')
+                
+                echo "##vso[task.setvariable variable=acrLoginServer;isOutput=true]$ACR_LOGIN_SERVER"
+                echo "##vso[task.setvariable variable=uploadServiceFqdn;isOutput=true]$UPLOAD_FQDN"
+                echo "##vso[task.setvariable variable=insightsServiceFqdn;isOutput=true]$INSIGHTS_FQDN"
+                echo "##vso[task.setvariable variable=monitorServiceFqdn;isOutput=true]$MONITOR_FQDN"
+
+# ============================================
+# Stage 3: Build and Push Docker Images
+# ============================================
+- stage: BuildAndPush
+  displayName: 'Build & Push Docker Images'
+  dependsOn: DeployInfra
+  condition: succeeded()
+  variables:
+    acrLoginServer: $[ stageDependencies.DeployInfra.DeployInfrastructure.outputs['DeployInfrastructure.DeployBicep.acrLoginServer'] ]
+    uploadServiceFqdn: $[ stageDependencies.DeployInfra.DeployInfrastructure.outputs['DeployInfrastructure.DeployBicep.uploadServiceFqdn'] ]
+    insightsServiceFqdn: $[ stageDependencies.DeployInfra.DeployInfrastructure.outputs['DeployInfrastructure.DeployBicep.insightsServiceFqdn'] ]
+    monitorServiceFqdn: $[ stageDependencies.DeployInfra.DeployInfrastructure.outputs['DeployInfrastructure.DeployBicep.monitorServiceFqdn'] ]
+  jobs:
+  - job: BuildAndPushImages
+    displayName: 'Build and Push All Images'
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - checkout: self
+
+    - task: AzureCLI@2
+      displayName: 'Login to ACR'
+      inputs:
+        azureSubscription: $(azureSubscription)
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          az acr login --name $(containerRegistryName)
+
+    - task: AzureCLI@2
+      displayName: 'Build and Push Upload Service'
+      inputs:
+        azureSubscription: $(azureSubscription)
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          cd backend/upload-service
+          az acr build \
+            --registry $(containerRegistryName) \
+            --image upload-service:$(imageTag) \
+            --image upload-service:latest \
+            --file .dockerfile \
+            .
+
+    - task: AzureCLI@2
+      displayName: 'Build and Push Insights Service'
+      inputs:
+        azureSubscription: $(azureSubscription)
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          cd backend/insights-service
+          az acr build \
+            --registry $(containerRegistryName) \
+            --image insights-service:$(imageTag) \
+            --image insights-service:latest \
+            --file .dockerfile \
+            .
+
+    - task: AzureCLI@2
+      displayName: 'Build and Push Monitor Service'
+      inputs:
+        azureSubscription: $(azureSubscription)
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          cd backend/monitor-service
+          az acr build \
+            --registry $(containerRegistryName) \
+            --image monitor-service:$(imageTag) \
+            --image monitor-service:latest \
+            --file .dockerfile \
+            .
+
+    - task: AzureCLI@2
+      displayName: 'Build and Push Frontend'
+      inputs:
+        azureSubscription: $(azureSubscription)
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          cd frontend
+          az acr build \
+            --registry $(containerRegistryName) \
+            --image frontend:$(imageTag) \
+            --image frontend:latest \
+            --file .dockerfile \
+            --build-arg REACT_APP_UPLOAD_SERVICE_ENDPOINT=https://$(uploadServiceFqdn) \
+            --build-arg REACT_APP_INSIGHTS_SERVICE_ENDPOINT=https://$(insightsServiceFqdn) \
+            --build-arg REACT_APP_MONITOR_SERVICE_ENDPOINT=https://$(monitorServiceFqdn) \
+            .
+
+# ============================================
+# Stage 4: Deploy Container Apps
+# ============================================
+- stage: DeployApps
+  displayName: 'Deploy Container Apps'
+  dependsOn: BuildAndPush
+  condition: succeeded()
+  jobs:
+  - deployment: DeployContainerApps
+    displayName: 'Update Container Apps with New Images'
+    environment: $(environmentName)
+    pool:
+      vmImage: 'ubuntu-latest'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: AzureCLI@2
+            displayName: 'Update Upload Service'
+            inputs:
+              azureSubscription: $(azureSubscription)
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                az containerapp update \
+                  --name $(uploadServiceAppName) \
+                  --resource-group $(resourceGroup) \
+                  --image $(containerRegistryName).azurecr.io/upload-service:$(imageTag)
+
+          - task: AzureCLI@2
+            displayName: 'Update Insights Service'
+            inputs:
+              azureSubscription: $(azureSubscription)
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                az containerapp update \
+                  --name $(insightsServiceAppName) \
+                  --resource-group $(resourceGroup) \
+                  --image $(containerRegistryName).azurecr.io/insights-service:$(imageTag)
+
+          - task: AzureCLI@2
+            displayName: 'Update Monitor Service'
+            inputs:
+              azureSubscription: $(azureSubscription)
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                az containerapp update \
+                  --name $(monitorServiceAppName) \
+                  --resource-group $(resourceGroup) \
+                  --image $(containerRegistryName).azurecr.io/monitor-service:$(imageTag)
+
+          - task: AzureCLI@2
+            displayName: 'Update Frontend'
+            inputs:
+              azureSubscription: $(azureSubscription)
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                az containerapp update \
+                  --name $(frontendAppName) \
+                  --resource-group $(resourceGroup) \
+                  --image $(containerRegistryName).azurecr.io/frontend:$(imageTag)
+
+          - task: AzureCLI@2
+            displayName: 'Show Deployment URLs'
+            inputs:
+              azureSubscription: $(azureSubscription)
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                echo "=== Deployment Complete ==="
+                FRONTEND_URL=$(az containerapp show --name $(frontendAppName) --resource-group $(resourceGroup) --query 'properties.configuration.ingress.fqdn' -o tsv)
+                echo "Frontend URL: https://$FRONTEND_URL"
+                echo "==========================="
