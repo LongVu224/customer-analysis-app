@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useCallback } from 'react';
 import { useSpring, animated } from 'react-spring';
-import styled from 'styled-components';
-import { FiX, FiCheckCircle } from 'react-icons/fi';
+import styled, { css } from 'styled-components';
+import { FiX, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
 
 const Background = styled.div`
   width: 100%;
@@ -31,8 +31,9 @@ const ModalWrapper = styled.div`
 
 const ModalInfoWrapper = styled.div`
   width: 90%;
-  max-width: 450px;
-  padding: 2.5rem;
+  max-width: 480px;
+  min-width: 320px;
+  padding: 3rem 2.5rem;
   background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 1.5rem;
@@ -41,20 +42,28 @@ const ModalInfoWrapper = styled.div`
   text-align: center;
 `;
 
-const SuccessIcon = styled.div`
-  width: 80px;
-  height: 80px;
-  margin: 0 auto 1.5rem;
+const IconWrapper = styled.div`
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 2rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(52, 211, 153, 0.2) 100%);
   border-radius: 50%;
   
-  svg {
-    font-size: 2.5rem;
-    color: #10b981;
-  }
+  ${props => props.isError ? css`
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(248, 113, 113, 0.2) 100%);
+    svg {
+      font-size: 3rem;
+      color: #ef4444;
+    }
+  ` : css`
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(52, 211, 153, 0.2) 100%);
+    svg {
+      font-size: 3rem;
+      color: #10b981;
+    }
+  `}
 `;
 
 const ModalImg = styled.img`
@@ -70,17 +79,17 @@ const ModalInfoContent = styled.div`
   align-items: center;
   
   h1 {
-    font-size: 1.5rem;
+    font-size: 1.75rem;
     font-weight: 700;
     color: white;
-    margin: 0 0 0.75rem;
+    margin: 0 0 1rem;
     letter-spacing: -0.02em;
   }
   
   p {
-    font-size: 1rem;
+    font-size: 1.1rem;
     color: rgba(255, 255, 255, 0.6);
-    margin: 0 0 1.5rem;
+    margin: 0 0 2rem;
     line-height: 1.6;
   }
 `;
@@ -151,12 +160,12 @@ const CloseModalButton = styled.button`
 
 const ActionButton = styled.button`
   width: 100%;
-  padding: 1rem;
+  padding: 1.125rem 2rem;
   background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
   color: white;
   border: none;
   border-radius: 0.75rem;
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -228,8 +237,11 @@ export const ModalConstruction = ({ showModal, setShowModal }) => {
   );
 };
 
-export const ModalInfo = ({ showModal, setShowModal, title, content, img }) => {
+export const ModalInfo = ({ showModal, setShowModal, title, content, img, isError }) => {
   const modalRef = useRef();
+  
+  // Auto-detect error state from title if not explicitly set
+  const showAsError = isError ?? (title?.toLowerCase().includes('oops') || title?.toLowerCase().includes('error'));
 
   const animation = useSpring({
     config: {
@@ -277,9 +289,9 @@ export const ModalInfo = ({ showModal, setShowModal, title, content, img }) => {
                 <FiX />
               </CloseModalButton>
               <ModalInfoContent>
-                <SuccessIcon>
-                  <FiCheckCircle />
-                </SuccessIcon>
+                <IconWrapper isError={showAsError}>
+                  {showAsError ? <FiAlertCircle /> : <FiCheckCircle />}
+                </IconWrapper>
                 <h1>{title}</h1>
                 <p>{content}</p>
                 <ActionButton onClick={() => setShowModal(false)}>
