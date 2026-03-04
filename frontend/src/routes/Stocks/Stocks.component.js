@@ -307,7 +307,7 @@ const Stocks = () => {
       </div>
 
       <div className="wrap container">
-        <h1 className="stocks-title"><span>Stock Trends</span></h1>
+        <h1 className="stocks-title"><span>Investment</span></h1>
 
         {/* View Mode Tabs */}
         <div className="view-mode-tabs">
@@ -334,7 +334,7 @@ const Stocks = () => {
                 className={`market-tab ${activeMarket === 'us' ? 'active' : ''}`}
                 onClick={() => setActiveMarket('us')}
               >
-                <HiOutlineGlobeAlt /> US Market
+                <HiOutlineGlobeAlt /> US
               </button>
               <button
                 className={`market-tab ${activeMarket === 'finland' ? 'active' : ''}`}
