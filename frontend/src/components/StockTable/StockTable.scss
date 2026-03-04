@@ -221,9 +221,44 @@
 .actions-cell {
   text-align: center;
 
-  .view-btn-wrapper {
-    position: relative;
-    display: inline-block;
+  .actions-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .watchlist-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+
+    svg {
+      font-size: 1rem;
+    }
+
+    &:hover {
+      background: rgba(251, 191, 36, 0.2);
+      color: #fbbf24;
+    }
+
+    &.in-watchlist {
+      background: rgba(251, 191, 36, 0.2);
+      color: #fbbf24;
+
+      &:hover {
+        background: rgba(239, 68, 68, 0.2);
+        color: #ef4444;
+      }
+    }
   }
 
   .view-btn {
@@ -241,137 +276,6 @@
       transform: scale(1.05);
       box-shadow: 0 4px 16px rgba(99, 102, 241, 0.5);
     }
-  }
-
-  // Stock preview tooltip
-  .stock-preview {
-    position: absolute;
-    right: 100%;
-    top: 50%;
-    transform: translateY(-50%);
-    margin-right: 12px;
-    width: 280px;
-    background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
-    border: 1px solid rgba(99, 102, 241, 0.3);
-    border-radius: 16px;
-    padding: 1.25rem;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
-    z-index: 100;
-    animation: fadeInPreview 0.2s ease;
-
-    &::after {
-      content: '';
-      position: absolute;
-      right: -8px;
-      top: 50%;
-      transform: translateY(-50%);
-      border-left: 8px solid rgba(99, 102, 241, 0.3);
-      border-top: 8px solid transparent;
-      border-bottom: 8px solid transparent;
-    }
-
-    .preview-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 0.5rem;
-    }
-
-    .preview-symbol {
-      font-weight: 700;
-      font-size: 1.1rem;
-      color: white;
-      background: rgba(99, 102, 241, 0.25);
-      padding: 0.25rem 0.6rem;
-      border-radius: 6px;
-    }
-
-    .preview-change {
-      display: flex;
-      align-items: center;
-      gap: 0.25rem;
-      font-weight: 600;
-      font-size: 0.95rem;
-      padding: 0.25rem 0.5rem;
-      border-radius: 6px;
-
-      &.positive {
-        background: rgba(16, 185, 129, 0.2);
-        color: #10b981;
-      }
-
-      &.negative {
-        background: rgba(239, 68, 68, 0.2);
-        color: #ef4444;
-      }
-
-      svg {
-        font-size: 0.85rem;
-      }
-    }
-
-    .preview-name {
-      font-size: 0.85rem;
-      color: rgba(255, 255, 255, 0.6);
-      margin-bottom: 0.75rem;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .preview-price {
-      font-size: 2rem;
-      font-weight: 700;
-      color: white;
-      margin-bottom: 1rem;
-    }
-
-    .preview-stats {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.75rem;
-      padding: 0.75rem;
-      background: rgba(255, 255, 255, 0.03);
-      border-radius: 10px;
-      margin-bottom: 0.75rem;
-
-      .stat {
-        display: flex;
-        flex-direction: column;
-        gap: 0.2rem;
-
-        .label {
-          font-size: 0.7rem;
-          color: rgba(255, 255, 255, 0.5);
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-        }
-
-        .value {
-          font-size: 0.9rem;
-          font-weight: 600;
-          color: white;
-        }
-      }
-    }
-
-    .preview-footer {
-      font-size: 0.75rem;
-      color: rgba(99, 102, 241, 0.8);
-      text-align: center;
-      font-style: italic;
-    }
-  }
-}
-
-@keyframes fadeInPreview {
-  from {
-    opacity: 0;
-    transform: translateY(-50%) translateX(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(-50%) translateX(0);
   }
 }
 
@@ -449,9 +353,5 @@
     tbody td:nth-child(8) {
       display: none;
     }
-  }
-
-  .actions-cell .stock-preview {
-    display: none; // Hide preview on mobile
   }
 }

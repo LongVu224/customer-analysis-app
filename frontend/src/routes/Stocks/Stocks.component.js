@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { FiTrendingUp, FiTrendingDown, FiSearch, FiPlus, FiX, FiRefreshCw, FiDollarSign, FiActivity, FiBarChart2, FiGrid, FiList, FiTable } from "react-icons/fi";
+import { FiTrendingUp, FiTrendingDown, FiSearch, FiPlus, FiX, FiRefreshCw, FiDollarSign, FiActivity, FiBarChart2, FiGrid, FiList, FiTable, FiStar } from "react-icons/fi";
 import { HiOutlineChartBar, HiOutlineSparkles, HiOutlineLightBulb, HiOutlineGlobeAlt } from "react-icons/hi2";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import StockTable from '../../components/StockTable';
@@ -11,11 +11,16 @@ const Stocks = () => {
   // View mode: 'board' or 'details'
   const [viewMode, setViewMode] = useState('board');
   
+  // Market tab: 'us', 'finland', 'watchlist'
+  const [activeMarket, setActiveMarket] = useState('us');
+  
   // Board view state
   const [usStocks, setUsStocks] = useState([]);
   const [finlandStocks, setFinlandStocks] = useState([]);
-  const [usLoading, setUsLoading] = useState(true);
-  const [finlandLoading, setFinlandLoading] = useState(true);
+  const [watchlistStocks, setWatchlistStocks] = useState([]);
+  const [usLoading, setUsLoading] = useState(false);
+  const [finlandLoading, setFinlandLoading] = useState(false);
+  const [watchlistLoading, setWatchlistLoading] = useState(false);
   
   // Details view state
   const [trendingStocks, setTrendingStocks] = useState([]);
@@ -57,6 +62,41 @@ const Stocks = () => {
       console.error('Failed to fetch Finland stocks:', err);
     } finally {
       setFinlandLoading(false);
+    }
+  }, []);
+
+  // Fetch watchlist stocks with full data
+  const fetchWatchlistStocks = useCallback(async () => {
+    try {
+      setWatchlistLoading(true);
+      // First get the watchlist symbols
+      const watchlistResponse = await fetch(`${API_BASE}/api/stocks/watchlist`);
+      const watchlistData = await watchlistResponse.json();
+      
+      if (watchlistData.success && watchlistData.data.symbols?.length > 0) {
+        setWatchlist(watchlistData.data.symbols);
+        
+        // Fetch quotes for each watchlist stock
+        const stockPromises = watchlistData.data.symbols.map(async (symbol) => {
+          try {
+            const quoteResponse = await fetch(`${API_BASE}/api/stocks/quote/${symbol}`);
+            const quoteData = await quoteResponse.json();
+            return quoteData.success ? quoteData.data : null;
+          } catch {
+            return null;
+          }
+        });
+        
+        const stocks = await Promise.all(stockPromises);
+        setWatchlistStocks(stocks.filter(s => s !== null));
+      } else {
+        setWatchlist([]);
+        setWatchlistStocks([]);
+      }
+    } catch (err) {
+      console.error('Failed to fetch watchlist stocks:', err);
+    } finally {
+      setWatchlistLoading(false);
     }
   }, []);
 
@@ -138,6 +178,10 @@ const Stocks = () => {
       const data = await response.json();
       if (data.success) {
         setWatchlist(data.data.symbols);
+        // Refresh watchlist stocks if on watchlist tab
+        if (activeMarket === 'watchlist') {
+          fetchWatchlistStocks();
+        }
       }
     } catch (err) {
       console.error('Failed to add to watchlist:', err);
@@ -155,6 +199,10 @@ const Stocks = () => {
       const data = await response.json();
       if (data.success) {
         setWatchlist(data.data.symbols);
+        // Refresh watchlist stocks if on watchlist tab
+        if (activeMarket === 'watchlist') {
+          fetchWatchlistStocks();
+        }
       }
     } catch (err) {
       console.error('Failed to remove from watchlist:', err);
@@ -166,13 +214,18 @@ const Stocks = () => {
     fetchWatchlist();
   }, [fetchTrending, fetchWatchlist]);
 
-  // Fetch board data when view mode changes
+  // Fetch market data when view mode or active market changes
   useEffect(() => {
     if (viewMode === 'board') {
-      fetchUsStocks();
-      fetchFinlandStocks();
+      if (activeMarket === 'us' && usStocks.length === 0) {
+        fetchUsStocks();
+      } else if (activeMarket === 'finland' && finlandStocks.length === 0) {
+        fetchFinlandStocks();
+      } else if (activeMarket === 'watchlist') {
+        fetchWatchlistStocks();
+      }
     }
-  }, [viewMode, fetchUsStocks, fetchFinlandStocks]);
+  }, [viewMode, activeMarket, fetchUsStocks, fetchFinlandStocks, fetchWatchlistStocks, usStocks.length, finlandStocks.length]);
 
   // Debounced search
   useEffect(() => {
@@ -225,37 +278,86 @@ const Stocks = () => {
         {/* Board View - Shows US and Finland Market Tables */}
         {viewMode === 'board' && (
           <div className="market-boards">
-            <div className="market-board-section">
-              <h2 className="market-title">
+            {/* Market Tabs */}
+            <div className="market-tabs">
+              <button
+                className={`market-tab ${activeMarket === 'us' ? 'active' : ''}`}
+                onClick={() => setActiveMarket('us')}
+              >
                 <HiOutlineGlobeAlt /> US Market
-              </h2>
-              <StockTable
-                stocks={usStocks}
-                loading={usLoading}
-                onRefresh={fetchUsStocks}
-                onSelectStock={(symbol) => {
-                  setViewMode('details');
-                  fetchAnalysis(symbol);
-                }}
-                marketName="US"
-              />
+              </button>
+              <button
+                className={`market-tab ${activeMarket === 'finland' ? 'active' : ''}`}
+                onClick={() => setActiveMarket('finland')}
+              >
+                <HiOutlineGlobeAlt /> Helsinki (Finland)
+              </button>
+              <button
+                className={`market-tab ${activeMarket === 'watchlist' ? 'active' : ''}`}
+                onClick={() => setActiveMarket('watchlist')}
+              >
+                <FiStar /> My Watchlist
+                {watchlist.length > 0 && <span className="tab-badge">{watchlist.length}</span>}
+              </button>
             </div>
 
-            <div className="market-board-section">
-              <h2 className="market-title">
-                <HiOutlineGlobeAlt /> Helsinki (Finland) Market
-              </h2>
-              <StockTable
-                stocks={finlandStocks}
-                loading={finlandLoading}
-                onRefresh={fetchFinlandStocks}
-                onSelectStock={(symbol) => {
-                  setViewMode('details');
-                  fetchAnalysis(symbol);
-                }}
-                marketName="Finland"
-              />
-            </div>
+            {/* US Market Table */}
+            {activeMarket === 'us' && (
+              <div className="market-board-section">
+                <StockTable
+                  stocks={usStocks}
+                  loading={usLoading}
+                  onRefresh={fetchUsStocks}
+                  onSelectStock={(symbol) => {
+                    setViewMode('details');
+                    fetchAnalysis(symbol);
+                  }}
+                  marketName="US"
+                  watchlist={watchlist}
+                  onAddToWatchlist={addToWatchlist}
+                  onRemoveFromWatchlist={removeFromWatchlist}
+                />
+              </div>
+            )}
+
+            {/* Finland Market Table */}
+            {activeMarket === 'finland' && (
+              <div className="market-board-section">
+                <StockTable
+                  stocks={finlandStocks}
+                  loading={finlandLoading}
+                  onRefresh={fetchFinlandStocks}
+                  onSelectStock={(symbol) => {
+                    setViewMode('details');
+                    fetchAnalysis(symbol);
+                  }}
+                  marketName="Finland"
+                  watchlist={watchlist}
+                  onAddToWatchlist={addToWatchlist}
+                  onRemoveFromWatchlist={removeFromWatchlist}
+                />
+              </div>
+            )}
+
+            {/* Watchlist Table */}
+            {activeMarket === 'watchlist' && (
+              <div className="market-board-section">
+                <StockTable
+                  stocks={watchlistStocks}
+                  loading={watchlistLoading}
+                  onRefresh={fetchWatchlistStocks}
+                  onSelectStock={(symbol) => {
+                    setViewMode('details');
+                    fetchAnalysis(symbol);
+                  }}
+                  marketName="Watchlist"
+                  watchlist={watchlist}
+                  onAddToWatchlist={addToWatchlist}
+                  onRemoveFromWatchlist={removeFromWatchlist}
+                  isWatchlistView={true}
+                />
+              </div>
+            )}
           </div>
         )}
 
@@ -387,8 +489,30 @@ const Stocks = () => {
                 {/* Header */}
                 <div className="analysis-header">
                   <div className="stock-identity">
-                    <h2>{stockAnalysis.symbol}</h2>
-                    <span className="company-name">{stockAnalysis.companyName}</span>
+                    <div className="symbol-row">
+                      <h2>{stockAnalysis.symbol}</h2>
+                      <button
+                        className={`watchlist-toggle-btn ${watchlist.includes(stockAnalysis.symbol) ? 'in-watchlist' : ''}`}
+                        onClick={() => {
+                          if (watchlist.includes(stockAnalysis.symbol)) {
+                            removeFromWatchlist(stockAnalysis.symbol);
+                          } else {
+                            addToWatchlist(stockAnalysis.symbol);
+                          }
+                        }}
+                      >
+                        {watchlist.includes(stockAnalysis.symbol) ? (
+                          <>
+                            <FiX /> Remove from Watchlist
+                          </>
+                        ) : (
+                          <>
+                            <FiStar /> Add to Watchlist
+                          </>
+                        )}
+                      </button>
+                    </div>
+                    <span className="company-name">{stockAnalysis.companyName || stockAnalysis.name}</span>
                   </div>
                   <div className="stock-price-info">
                     <span className="current-price">${stockAnalysis.currentPrice?.toFixed(2)}</span>

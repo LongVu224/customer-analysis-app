@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { FiTrendingUp, FiTrendingDown, FiRefreshCw, FiChevronUp, FiChevronDown, FiPlus, FiArrowUp, FiArrowDown } from 'react-icons/fi';
+import { FiTrendingUp, FiTrendingDown, FiRefreshCw, FiChevronUp, FiChevronDown, FiStar, FiX } from 'react-icons/fi';
 import './StockTable.scss';
 
-const StockTable = ({ stocks, loading, onRefresh, onSelectStock, marketName }) => {
+const StockTable = ({ stocks, loading, onRefresh, onSelectStock, marketName, watchlist = [], onAddToWatchlist, onRemoveFromWatchlist, isWatchlistView = false }) => {
   const [sortField, setSortField] = useState('symbol');
   const [sortDirection, setSortDirection] = useState('asc');
-  const [hoveredStock, setHoveredStock] = useState(null);
+
+  // Check if stock is in watchlist
+  const isInWatchlist = (symbol) => watchlist.includes(symbol);
 
   // Handle sorting
   const handleSort = (field) => {
@@ -51,10 +53,12 @@ const StockTable = ({ stocks, loading, onRefresh, onSelectStock, marketName }) =
   if (!stocks || stocks.length === 0) {
     return (
       <div className="stock-table-empty">
-        <p>No stock data available</p>
-        <button className="refresh-btn" onClick={onRefresh}>
-          <FiRefreshCw /> Retry
-        </button>
+        <p>{isWatchlistView ? 'Your watchlist is empty. Add stocks from US or Finland markets.' : 'No stock data available'}</p>
+        {!isWatchlistView && (
+          <button className="refresh-btn" onClick={onRefresh}>
+            <FiRefreshCw /> Retry
+          </button>
+        )}
       </div>
     );
   }
@@ -130,11 +134,23 @@ const StockTable = ({ stocks, loading, onRefresh, onSelectStock, marketName }) =
                 <td className="align-right">${stock.low?.toFixed(2)}</td>
                 <td className="align-right">${stock.open?.toFixed(2)}</td>
                 <td className="actions-cell">
-                  <div 
-                    className="view-btn-wrapper"
-                    onMouseEnter={() => setHoveredStock(stock)}
-                    onMouseLeave={() => setHoveredStock(null)}
-                  >
+                  <div className="actions-buttons">
+                    {onAddToWatchlist && onRemoveFromWatchlist && (
+                      <button
+                        className={`watchlist-btn ${isInWatchlist(stock.symbol) ? 'in-watchlist' : ''}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (isInWatchlist(stock.symbol)) {
+                            onRemoveFromWatchlist(stock.symbol);
+                          } else {
+                            onAddToWatchlist(stock.symbol);
+                          }
+                        }}
+                        title={isInWatchlist(stock.symbol) ? 'Remove from watchlist' : 'Add to watchlist'}
+                      >
+                        {isInWatchlist(stock.symbol) ? <FiX /> : <FiStar />}
+                      </button>
+                    )}
                     <button 
                       className="view-btn"
                       onClick={(e) => {
@@ -144,38 +160,6 @@ const StockTable = ({ stocks, loading, onRefresh, onSelectStock, marketName }) =
                     >
                       View
                     </button>
-                    {hoveredStock?.symbol === stock.symbol && (
-                      <div className="stock-preview">
-                        <div className="preview-header">
-                          <span className="preview-symbol">{stock.symbol}</span>
-                          <span className={`preview-change ${stock.changePercent >= 0 ? 'positive' : 'negative'}`}>
-                            {stock.changePercent >= 0 ? <FiArrowUp /> : <FiArrowDown />}
-                            {stock.changePercent >= 0 ? '+' : ''}{stock.changePercent?.toFixed(2)}%
-                          </span>
-                        </div>
-                        <div className="preview-name">{stock.name || stock.symbol}</div>
-                        <div className="preview-price">${stock.currentPrice?.toFixed(2)}</div>
-                        <div className="preview-stats">
-                          <div className="stat">
-                            <span className="label">Open</span>
-                            <span className="value">${stock.open?.toFixed(2)}</span>
-                          </div>
-                          <div className="stat">
-                            <span className="label">High</span>
-                            <span className="value">${stock.high?.toFixed(2)}</span>
-                          </div>
-                          <div className="stat">
-                            <span className="label">Low</span>
-                            <span className="value">${stock.low?.toFixed(2)}</span>
-                          </div>
-                          <div className="stat">
-                            <span className="label">Prev Close</span>
-                            <span className="value">${stock.previousClose?.toFixed(2)}</span>
-                          </div>
-                        </div>
-                        <div className="preview-footer">Click to view full analysis</div>
-                      </div>
-                    )}
                   </div>
                 </td>
               </tr>
