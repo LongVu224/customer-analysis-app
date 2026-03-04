@@ -215,6 +215,50 @@ const Stocks = () => {
     }
   };
 
+  // Add custom stock to market
+  const addToMarket = async (marketId, symbol) => {
+    try {
+      const response = await fetch(`${API_BASE}/api/stocks/market/${marketId}/add`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ symbol })
+      });
+      const data = await response.json();
+      if (data.success) {
+        // Refresh the market data
+        if (marketId === 'us') {
+          fetchUsStocks();
+        } else if (marketId === 'finland') {
+          fetchFinlandStocks();
+        }
+      }
+    } catch (err) {
+      console.error('Failed to add to market:', err);
+    }
+  };
+
+  // Remove custom stock from market
+  const removeFromMarket = async (marketId, symbol) => {
+    try {
+      const response = await fetch(`${API_BASE}/api/stocks/market/${marketId}/remove`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ symbol })
+      });
+      const data = await response.json();
+      if (data.success) {
+        // Remove the stock from state immediately
+        if (marketId === 'us') {
+          setUsStocks(prev => prev.filter(s => s.symbol !== symbol));
+        } else if (marketId === 'finland') {
+          setFinlandStocks(prev => prev.filter(s => s.symbol !== symbol));
+        }
+      }
+    } catch (err) {
+      console.error('Failed to remove from market:', err);
+    }
+  };
+
   useEffect(() => {
     fetchTrending();
     fetchWatchlist();
@@ -319,9 +363,12 @@ const Stocks = () => {
                     fetchAnalysis(symbol);
                   }}
                   marketName="US"
+                  marketId="us"
                   watchlist={watchlist}
                   onAddToWatchlist={addToWatchlist}
                   onRemoveFromWatchlist={removeFromWatchlist}
+                  onAddToMarket={(symbol) => addToMarket('us', symbol)}
+                  onRemoveFromMarket={(symbol) => removeFromMarket('us', symbol)}
                   lastUpdated={usLastUpdated}
                 />
               </div>
@@ -339,9 +386,12 @@ const Stocks = () => {
                     fetchAnalysis(symbol);
                   }}
                   marketName="Finland"
+                  marketId="finland"
                   watchlist={watchlist}
                   onAddToWatchlist={addToWatchlist}
                   onRemoveFromWatchlist={removeFromWatchlist}
+                  onAddToMarket={(symbol) => addToMarket('finland', symbol)}
+                  onRemoveFromMarket={(symbol) => removeFromMarket('finland', symbol)}
                   lastUpdated={finlandLastUpdated}
                 />
               </div>
@@ -519,6 +569,20 @@ const Stocks = () => {
                             <FiStar /> Add to Watchlist
                           </>
                         )}
+                      </button>
+                      <button
+                        className="market-add-btn us-market"
+                        onClick={() => addToMarket('us', stockAnalysis.symbol)}
+                        title="Add to US Market"
+                      >
+                        <FiPlus /> US
+                      </button>
+                      <button
+                        className="market-add-btn finland-market"
+                        onClick={() => addToMarket('finland', stockAnalysis.symbol)}
+                        title="Add to Helsinki Market"
+                      >
+                        <FiPlus /> Helsinki
                       </button>
                     </div>
                     <span className="company-name">{stockAnalysis.companyName || stockAnalysis.name}</span>

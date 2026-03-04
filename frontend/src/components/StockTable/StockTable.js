@@ -1,11 +1,71 @@
-import { useState } from 'react';
-import { FiTrendingUp, FiTrendingDown, FiRefreshCw, FiChevronUp, FiChevronDown, FiStar, FiX, FiClock, FiSearch } from 'react-icons/fi';
+import { useState, useEffect } from 'react';
+import { FiTrendingUp, FiTrendingDown, FiRefreshCw, FiChevronUp, FiChevronDown, FiStar, FiX, FiClock, FiSearch, FiPlus, FiTrash2 } from 'react-icons/fi';
 import './StockTable.scss';
 
-const StockTable = ({ stocks, loading, onRefresh, onSelectStock, marketName, watchlist = [], onAddToWatchlist, onRemoveFromWatchlist, isWatchlistView = false, lastUpdated = null }) => {
+const API_BASE = process.env.REACT_APP_STOCK_SERVICE_URL || 'http://localhost:3004';
+
+const StockTable = ({ 
+  stocks, 
+  loading, 
+  onRefresh, 
+  onSelectStock, 
+  marketName, 
+  marketId,
+  watchlist = [], 
+  onAddToWatchlist, 
+  onRemoveFromWatchlist, 
+  onAddToMarket,
+  onRemoveFromMarket,
+  isWatchlistView = false, 
+  lastUpdated = null 
+}) => {
   const [sortField, setSortField] = useState('symbol');
   const [sortDirection, setSortDirection] = useState('asc');
   const [searchFilter, setSearchFilter] = useState('');
+  const [showAddStock, setShowAddStock] = useState(false);
+  const [addStockQuery, setAddStockQuery] = useState('');
+  const [addStockResults, setAddStockResults] = useState([]);
+  const [addStockLoading, setAddStockLoading] = useState(false);
+
+  // Search for stocks to add
+  const searchStocksToAdd = async (query) => {
+    if (!query || query.length < 1) {
+      setAddStockResults([]);
+      return;
+    }
+    try {
+      setAddStockLoading(true);
+      const response = await fetch(`${API_BASE}/api/stocks/search/${query}`);
+      const data = await response.json();
+      if (data.success) {
+        // Filter out stocks already in the list
+        const existingSymbols = stocks.map(s => s.symbol);
+        setAddStockResults(data.data.filter(r => !existingSymbols.includes(r.symbol)));
+      }
+    } catch (err) {
+      console.error('Search failed:', err);
+    } finally {
+      setAddStockLoading(false);
+    }
+  };
+
+  // Handle adding stock to market
+  const handleAddStock = (symbol) => {
+    if (onAddToMarket) {
+      onAddToMarket(symbol);
+      setShowAddStock(false);
+      setAddStockQuery('');
+      setAddStockResults([]);
+    }
+  };
+
+  // Debounced search for add stock
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      searchStocksToAdd(addStockQuery);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [addStockQuery]);
 
   // Format last updated time
   const formatLastUpdated = (date) => {
@@ -101,6 +161,15 @@ const StockTable = ({ stocks, loading, onRefresh, onSelectStock, marketName, wat
               </button>
             )}
           </div>
+          {onAddToMarket && !isWatchlistView && (
+            <button 
+              className="add-stock-btn" 
+              onClick={() => setShowAddStock(!showAddStock)}
+              title={`Add stock to ${marketName} market`}
+            >
+              <FiPlus /> Add Stock
+            </button>
+          )}
         </div>
         <div className="header-right">
           {lastUpdated && (
@@ -113,6 +182,52 @@ const StockTable = ({ stocks, loading, onRefresh, onSelectStock, marketName, wat
           </button>
         </div>
       </div>
+
+      {/* Add Stock Modal */}
+      {showAddStock && (
+        <div className="add-stock-modal">
+          <div className="add-stock-search">
+            <FiSearch className="search-icon" />
+            <input
+              type="text"
+              placeholder={`Search stocks to add to ${marketName}...`}
+              value={addStockQuery}
+              onChange={(e) => setAddStockQuery(e.target.value)}
+              autoFocus
+            />
+            <button className="close-modal" onClick={() => {
+              setShowAddStock(false);
+              setAddStockQuery('');
+              setAddStockResults([]);
+            }}>
+              <FiX />
+            </button>
+          </div>
+          {addStockLoading && (
+            <div className="add-stock-loading">Searching...</div>
+          )}
+          {addStockResults.length > 0 && (
+            <div className="add-stock-results">
+              {addStockResults.map((result) => (
+                <div 
+                  key={result.symbol} 
+                  className="add-stock-item"
+                  onClick={() => handleAddStock(result.symbol)}
+                >
+                  <span className="symbol">{result.symbol}</span>
+                  <span className="name">{result.name}</span>
+                  <button className="add-btn">
+                    <FiPlus /> Add
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          {addStockQuery && !addStockLoading && addStockResults.length === 0 && (
+            <div className="no-results">No stocks found or all matches already added</div>
+          )}
+        </div>
+      )}
       
       <div className="table-wrapper">
         <table className="stock-table">
@@ -142,6 +257,8 @@ const StockTable = ({ stocks, loading, onRefresh, onSelectStock, marketName, wat
               <th onClick={() => handleSort('open')} className="sortable align-right">
                 Open <SortIcon field="open" />
               </th>
+              {onAddToWatchlist && <th className="watchlist-col">Watchlist</th>}
+              {onRemoveFromMarket && !isWatchlistView && <th className="custom-col">Custom</th>}
               <th className="actions-col">Actions</th>
             </tr>
           </thead>
@@ -175,34 +292,50 @@ const StockTable = ({ stocks, loading, onRefresh, onSelectStock, marketName, wat
                 <td className="align-right">${stock.high?.toFixed(2)}</td>
                 <td className="align-right">${stock.low?.toFixed(2)}</td>
                 <td className="align-right">${stock.open?.toFixed(2)}</td>
-                <td className="actions-cell">
-                  <div className="actions-buttons">
-                    {onAddToWatchlist && onRemoveFromWatchlist && (
-                      <button
-                        className={`watchlist-btn ${isInWatchlist(stock.symbol) ? 'in-watchlist' : ''}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (isInWatchlist(stock.symbol)) {
-                            onRemoveFromWatchlist(stock.symbol);
-                          } else {
-                            onAddToWatchlist(stock.symbol);
-                          }
-                        }}
-                        title={isInWatchlist(stock.symbol) ? 'Remove from watchlist' : 'Add to watchlist'}
-                      >
-                        {isInWatchlist(stock.symbol) ? <FiX /> : <FiStar />}
-                      </button>
-                    )}
-                    <button 
-                      className="view-btn"
+                {onAddToWatchlist && (
+                  <td className="watchlist-cell">
+                    <button
+                      className={`watchlist-btn ${isInWatchlist(stock.symbol) ? 'in-watchlist' : ''}`}
                       onClick={(e) => {
                         e.stopPropagation();
-                        onSelectStock(stock.symbol);
+                        if (isInWatchlist(stock.symbol)) {
+                          onRemoveFromWatchlist(stock.symbol);
+                        } else {
+                          onAddToWatchlist(stock.symbol);
+                        }
                       }}
+                      title={isInWatchlist(stock.symbol) ? 'Remove from watchlist' : 'Add to watchlist'}
                     >
-                      View
+                      {isInWatchlist(stock.symbol) ? <FiX /> : <FiStar />}
                     </button>
-                  </div>
+                  </td>
+                )}
+                {onRemoveFromMarket && !isWatchlistView && (
+                  <td className="custom-cell">
+                    {stock.isCustom && (
+                      <button
+                        className="remove-custom-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onRemoveFromMarket(stock.symbol);
+                        }}
+                        title={`Remove from ${marketName} market`}
+                      >
+                        <FiTrash2 />
+                      </button>
+                    )}
+                  </td>
+                )}
+                <td className="actions-cell">
+                  <button 
+                    className="view-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSelectStock(stock.symbol);
+                    }}
+                  >
+                    View
+                  </button>
                 </td>
               </tr>
             ))}

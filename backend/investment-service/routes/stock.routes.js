@@ -4,6 +4,7 @@ const NodeCache = require('node-cache');
 const config = require('../config/config');
 const StockData = require('../models/StockData');
 const Watchlist = require('../models/Watchlist');
+const MarketCustomSymbols = require('../models/MarketCustomSymbols');
 
 // Initialize cache with 15 minute TTL
 const stockCache = new NodeCache({ stdTTL: config.cacheTTL });
@@ -373,9 +374,22 @@ router.get('/market/:marketId', async (req, res) => {
       });
     }
 
+    // Get custom symbols for this market
+    const customSymbols = await MarketCustomSymbols.findOne({ marketId });
+    const allSymbols = [...market.symbols];
+    
+    // Add custom symbols if any
+    if (customSymbols && customSymbols.symbols.length > 0) {
+      customSymbols.symbols.forEach(symbol => {
+        if (!allSymbols.includes(symbol)) {
+          allSymbols.push(symbol);
+        }
+      });
+    }
+
     const results = [];
 
-    for (const symbol of market.symbols) {
+    for (const symbol of allSymbols) {
       // Check cache first
       let data = stockCache.get(`quote_${symbol}`);
       
@@ -387,6 +401,8 @@ router.get('/market/:marketId', async (req, res) => {
       }
 
       if (data) {
+        // Mark if it's a custom symbol
+        data.isCustom = customSymbols?.symbols?.includes(symbol) || false;
         results.push(data);
       }
 
@@ -455,6 +471,74 @@ router.get('/suggestions', async (req, res) => {
 // ============================================
 // WATCHLIST ROUTES
 // ============================================
+
+/**
+ * POST /api/stocks/market/:marketId/add
+ * Add custom symbol to a market
+ */
+router.post('/market/:marketId/add', async (req, res) => {
+  try {
+    const marketId = req.params.marketId.toLowerCase();
+    const { symbol } = req.body;
+    
+    if (!symbol) {
+      return res.status(400).json({ success: false, message: 'Symbol required' });
+    }
+    
+    if (!config.markets[marketId]) {
+      return res.status(404).json({ success: false, message: 'Market not found' });
+    }
+
+    let marketCustom = await MarketCustomSymbols.findOne({ marketId });
+    if (!marketCustom) {
+      marketCustom = new MarketCustomSymbols({ marketId, symbols: [] });
+    }
+
+    const upperSymbol = symbol.toUpperCase();
+    
+    // Check if already in default symbols
+    if (config.markets[marketId].symbols.includes(upperSymbol)) {
+      return res.json({ success: true, message: 'Symbol already in market', data: marketCustom });
+    }
+    
+    // Add if not already in custom symbols
+    if (!marketCustom.symbols.includes(upperSymbol)) {
+      marketCustom.symbols.push(upperSymbol);
+      await marketCustom.save();
+    }
+
+    res.json({ success: true, data: marketCustom });
+  } catch (error) {
+    console.error('Add to market error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+/**
+ * POST /api/stocks/market/:marketId/remove
+ * Remove custom symbol from a market
+ */
+router.post('/market/:marketId/remove', async (req, res) => {
+  try {
+    const marketId = req.params.marketId.toLowerCase();
+    const { symbol } = req.body;
+    
+    if (!symbol) {
+      return res.status(400).json({ success: false, message: 'Symbol required' });
+    }
+
+    const marketCustom = await MarketCustomSymbols.findOne({ marketId });
+    if (marketCustom) {
+      marketCustom.symbols = marketCustom.symbols.filter(s => s !== symbol.toUpperCase());
+      await marketCustom.save();
+    }
+
+    res.json({ success: true, data: marketCustom });
+  } catch (error) {
+    console.error('Remove from market error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
 
 /**
  * GET /api/stocks/watchlist
