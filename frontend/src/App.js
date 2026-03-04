@@ -5,6 +5,7 @@ import { Routes, Route } from 'react-router-dom';
 import Home from './routes/Home';
 import Insights from './routes/Insights';
 import Monitor from './routes/Monitor';
+import Stocks from './routes/Stocks';
 import './App.css';
 
 function App() {
@@ -17,9 +18,10 @@ function App() {
       
       {/* Routes */}
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/Insights" element={<Insights />} />
+        <Route path="/" element={<Insights />} />
+        <Route path="/Stocks" element={<Stocks />} />
         <Route path="/Monitor" element={<Monitor />} />
+        <Route path="/Upload" element={<Home />} />
       </Routes>
     </div>
   );

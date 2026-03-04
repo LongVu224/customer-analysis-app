@@ -30,8 +30,9 @@ const app = (
         <BrowserRouter history={history}>
           <Routes>
             <Route path="/" element={ <App /> }>
-            <Route path="/Insights" element={ <App /> }></Route>
+            <Route path="/Stocks" element={ <App /> }></Route>
             <Route path="/Monitor" element={ <App /> }></Route>
+            <Route path="/Upload" element={ <App /> }></Route>
             </Route>
         </Routes>
         </BrowserRouter>

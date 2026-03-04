@@ -34,6 +34,17 @@ services:
     env_file:
       - ./backend/monitor-service/.env
 
+  # Stock Service
+  stock-service:
+    build:
+      context: ./backend/stock-service
+      dockerfile: .dockerfile
+    container_name: finance-analysis-stock
+    ports:
+      - "3004:3004"
+    env_file:
+      - ./backend/stock-service/.env
+
   # Frontend
   frontend:
     build:
@@ -43,6 +54,7 @@ services:
         - REACT_APP_UPLOAD_SERVICE_ENDPOINT=http://localhost:8000
         - REACT_APP_INSIGHTS_SERVICE_ENDPOINT=http://localhost:9000
         - REACT_APP_MONITOR_SERVICE_ENDPOINT=http://localhost:8999
+        - REACT_APP_STOCK_SERVICE_URL=http://localhost:3004
     container_name: finance-analysis-frontend
     ports:
       - "3000:3000"
@@ -50,3 +62,4 @@ services:
       - upload-service
       - insights-service
       - monitor-service
+      - stock-service
