@@ -1,6 +1,6 @@
-# Sale Analysis App
+# Finance Analysis App
 
-A full-stack application for analyzing sale data, providing insights through a modern frontend and robust backend services. Deployed on **Azure Container Apps** with full CI/CD automation.
+A full-stack application for analyzing finance data, providing insights through a modern frontend and robust backend services. Deployed on **Azure Container Apps** with full CI/CD automation.
 
 ---
 
@@ -26,7 +26,7 @@ A full-stack application for analyzing sale data, providing insights through a m
 
 ## Overview
 
-Sale Analysis App enables businesses to upload, manage, and analyze sale data, visualize trends, and generate actionable insights.
+Finance Analysis App enables businesses to upload, manage, and analyze finance data, visualize trends, and generate actionable insights.
 
 ---
 
@@ -98,11 +98,11 @@ Sale Analysis App enables businesses to upload, manage, and analyze sale data, v
 
 ```powershell
 # Clone repository
-git clone https://github.com/your-org/Sale-Analysis-App.git
-cd Sale-Analysis-App\backend
+git clone https://github.com/LongVu224/finance-analysis.git
+cd finance-analysis\backend
 
 # Direct to a service, for example insights-service
-cd insights-services
+cd insights-service
 
 # Install dependencies
 npm install
