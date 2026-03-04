@@ -841,6 +841,66 @@
       color: rgba(255, 255, 255, 0.5);
       text-transform: uppercase;
       letter-spacing: 0.05em;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    
+    .info-tooltip {
+      position: relative;
+      display: inline-flex;
+      cursor: help;
+      
+      .info-icon {
+        font-size: 0.7rem;
+        color: rgba(255, 255, 255, 0.4);
+        transition: color 0.2s ease;
+      }
+      
+      &:hover .info-icon {
+        color: #818cf8;
+      }
+      
+      .tooltip-text {
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 220px;
+        padding: 0.75rem;
+        background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+        border: 1px solid rgba(99, 102, 241, 0.3);
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 400;
+        color: rgba(255, 255, 255, 0.9);
+        text-transform: none;
+        letter-spacing: normal;
+        line-height: 1.4;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.2s ease;
+        z-index: 100;
+        margin-bottom: 8px;
+        pointer-events: none;
+        
+        &::after {
+          content: '';
+          position: absolute;
+          top: 100%;
+          left: 50%;
+          transform: translateX(-50%);
+          border-left: 6px solid transparent;
+          border-right: 6px solid transparent;
+          border-top: 6px solid rgba(99, 102, 241, 0.3);
+        }
+      }
+      
+      &:hover .tooltip-text {
+        opacity: 1;
+        visibility: visible;
+      }
     }
     
     .value {

@@ -13,11 +13,98 @@
   padding: 1rem 1.5rem;
   background: rgba(255, 255, 255, 0.02);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  gap: 1rem;
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
 
   .stock-count {
     font-size: 0.9rem;
     color: rgba(255, 255, 255, 0.6);
     font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .last-updated {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.5);
+    white-space: nowrap;
+
+    svg {
+      font-size: 0.85rem;
+    }
+  }
+
+  .table-search {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: 1;
+    max-width: 220px;
+
+    .search-icon {
+      position: absolute;
+      left: 0.75rem;
+      color: rgba(255, 255, 255, 0.4);
+      font-size: 0.9rem;
+      pointer-events: none;
+    }
+
+    input {
+      width: 100%;
+      padding: 0.5rem 2rem 0.5rem 2.25rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      color: white;
+      font-size: 0.85rem;
+      transition: all 0.2s ease;
+
+      &::placeholder {
+        color: rgba(255, 255, 255, 0.4);
+      }
+
+      &:focus {
+        outline: none;
+        border-color: rgba(99, 102, 241, 0.5);
+        background: rgba(255, 255, 255, 0.08);
+      }
+    }
+
+    .clear-search {
+      position: absolute;
+      right: 0.5rem;
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, 0.4);
+      cursor: pointer;
+      padding: 0.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.2s ease;
+
+      &:hover {
+        color: rgba(255, 255, 255, 0.8);
+      }
+
+      svg {
+        font-size: 0.85rem;
+      }
+    }
   }
 
   .refresh-btn {

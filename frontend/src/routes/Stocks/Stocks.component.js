@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { FiTrendingUp, FiTrendingDown, FiSearch, FiPlus, FiX, FiRefreshCw, FiDollarSign, FiActivity, FiBarChart2, FiGrid, FiList, FiTable, FiStar } from "react-icons/fi";
+import { FiTrendingUp, FiTrendingDown, FiSearch, FiPlus, FiX, FiRefreshCw, FiDollarSign, FiActivity, FiBarChart2, FiGrid, FiList, FiTable, FiStar, FiInfo } from "react-icons/fi";
 import { HiOutlineChartBar, HiOutlineSparkles, HiOutlineLightBulb, HiOutlineGlobeAlt } from "react-icons/hi2";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import StockTable from '../../components/StockTable';
@@ -21,6 +21,9 @@ const Stocks = () => {
   const [usLoading, setUsLoading] = useState(false);
   const [finlandLoading, setFinlandLoading] = useState(false);
   const [watchlistLoading, setWatchlistLoading] = useState(false);
+  const [usLastUpdated, setUsLastUpdated] = useState(null);
+  const [finlandLastUpdated, setFinlandLastUpdated] = useState(null);
+  const [watchlistLastUpdated, setWatchlistLastUpdated] = useState(null);
   
   // Details view state
   const [trendingStocks, setTrendingStocks] = useState([]);
@@ -41,6 +44,7 @@ const Stocks = () => {
       const data = await response.json();
       if (data.success) {
         setUsStocks(data.data);
+        setUsLastUpdated(new Date());
       }
     } catch (err) {
       console.error('Failed to fetch US stocks:', err);
@@ -57,9 +61,10 @@ const Stocks = () => {
       const data = await response.json();
       if (data.success) {
         setFinlandStocks(data.data);
+        setFinlandLastUpdated(new Date());
       }
     } catch (err) {
-      console.error('Failed to fetch Finland stocks:', err);
+      console.error('Failed to fetch Finland stocks:', err);;
     } finally {
       setFinlandLoading(false);
     }
@@ -89,6 +94,7 @@ const Stocks = () => {
         
         const stocks = await Promise.all(stockPromises);
         setWatchlistStocks(stocks.filter(s => s !== null));
+        setWatchlistLastUpdated(new Date());
       } else {
         setWatchlist([]);
         setWatchlistStocks([]);
@@ -316,6 +322,7 @@ const Stocks = () => {
                   watchlist={watchlist}
                   onAddToWatchlist={addToWatchlist}
                   onRemoveFromWatchlist={removeFromWatchlist}
+                  lastUpdated={usLastUpdated}
                 />
               </div>
             )}
@@ -335,6 +342,7 @@ const Stocks = () => {
                   watchlist={watchlist}
                   onAddToWatchlist={addToWatchlist}
                   onRemoveFromWatchlist={removeFromWatchlist}
+                  lastUpdated={finlandLastUpdated}
                 />
               </div>
             )}
@@ -355,6 +363,7 @@ const Stocks = () => {
                   onAddToWatchlist={addToWatchlist}
                   onRemoveFromWatchlist={removeFromWatchlist}
                   isWatchlistView={true}
+                  lastUpdated={watchlistLastUpdated}
                 />
               </div>
             )}
@@ -570,7 +579,13 @@ const Stocks = () => {
                   <div className="indicator-card">
                     <FiActivity className="indicator-icon" />
                     <div className="indicator-content">
-                      <span className="label">RSI (14)</span>
+                      <span className="label">
+                        RSI (14)
+                        <span className="info-tooltip">
+                          <FiInfo className="info-icon" />
+                          <span className="tooltip-text">Relative Strength Index (RSI) measures momentum on a scale of 0-100. Below 30 suggests oversold (potential buy), above 70 suggests overbought (potential sell).</span>
+                        </span>
+                      </span>
                       <span className="value">{stockAnalysis.rsi?.toFixed(2)}</span>
                       <span className={`status ${stockAnalysis.rsi < 30 ? 'oversold' : stockAnalysis.rsi > 70 ? 'overbought' : 'neutral'}`}>
                         {stockAnalysis.rsi < 30 ? 'Oversold' : stockAnalysis.rsi > 70 ? 'Overbought' : 'Neutral'}
@@ -580,7 +595,13 @@ const Stocks = () => {
                   <div className="indicator-card">
                     <HiOutlineChartBar className="indicator-icon" />
                     <div className="indicator-content">
-                      <span className="label">SMA 20</span>
+                      <span className="label">
+                        SMA 20
+                        <span className="info-tooltip">
+                          <FiInfo className="info-icon" />
+                          <span className="tooltip-text">Simple Moving Average (20-day) shows the average closing price over 20 days. Price above SMA20 indicates short-term bullish trend.</span>
+                        </span>
+                      </span>
                       <span className="value">${stockAnalysis.sma20?.toFixed(2)}</span>
                       <span className={`status ${stockAnalysis.currentPrice > stockAnalysis.sma20 ? 'bullish' : 'bearish'}`}>
                         {stockAnalysis.currentPrice > stockAnalysis.sma20 ? 'Above' : 'Below'}
@@ -590,7 +611,13 @@ const Stocks = () => {
                   <div className="indicator-card">
                     <FiBarChart2 className="indicator-icon" />
                     <div className="indicator-content">
-                      <span className="label">SMA 50</span>
+                      <span className="label">
+                        SMA 50
+                        <span className="info-tooltip">
+                          <FiInfo className="info-icon" />
+                          <span className="tooltip-text">Simple Moving Average (50-day) shows the average closing price over 50 days. Price above SMA50 indicates medium-term bullish trend.</span>
+                        </span>
+                      </span>
                       <span className="value">${stockAnalysis.sma50?.toFixed(2)}</span>
                       <span className={`status ${stockAnalysis.currentPrice > stockAnalysis.sma50 ? 'bullish' : 'bearish'}`}>
                         {stockAnalysis.currentPrice > stockAnalysis.sma50 ? 'Above' : 'Below'}
@@ -600,7 +627,13 @@ const Stocks = () => {
                   <div className="indicator-card">
                     <FiDollarSign className="indicator-icon" />
                     <div className="indicator-content">
-                      <span className="label">Volume</span>
+                      <span className="label">
+                        Volume
+                        <span className="info-tooltip">
+                          <FiInfo className="info-icon" />
+                          <span className="tooltip-text">Trading volume shows the total number of shares traded during the day. High volume often indicates strong interest and can confirm price trends.</span>
+                        </span>
+                      </span>
                       <span className="value">{(stockAnalysis.volume / 1000000)?.toFixed(2)}M</span>
                       <span className="status neutral">Daily</span>
                     </div>

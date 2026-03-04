@@ -1,10 +1,17 @@
 import { useState } from 'react';
-import { FiTrendingUp, FiTrendingDown, FiRefreshCw, FiChevronUp, FiChevronDown, FiStar, FiX } from 'react-icons/fi';
+import { FiTrendingUp, FiTrendingDown, FiRefreshCw, FiChevronUp, FiChevronDown, FiStar, FiX, FiClock, FiSearch } from 'react-icons/fi';
 import './StockTable.scss';
 
-const StockTable = ({ stocks, loading, onRefresh, onSelectStock, marketName, watchlist = [], onAddToWatchlist, onRemoveFromWatchlist, isWatchlistView = false }) => {
+const StockTable = ({ stocks, loading, onRefresh, onSelectStock, marketName, watchlist = [], onAddToWatchlist, onRemoveFromWatchlist, isWatchlistView = false, lastUpdated = null }) => {
   const [sortField, setSortField] = useState('symbol');
   const [sortDirection, setSortDirection] = useState('asc');
+  const [searchFilter, setSearchFilter] = useState('');
+
+  // Format last updated time
+  const formatLastUpdated = (date) => {
+    if (!date) return null;
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  };
 
   // Check if stock is in watchlist
   const isInWatchlist = (symbol) => watchlist.includes(symbol);
@@ -19,8 +26,18 @@ const StockTable = ({ stocks, loading, onRefresh, onSelectStock, marketName, wat
     }
   };
 
+  // Filter stocks by search query
+  const filteredStocks = stocks.filter((stock) => {
+    if (!searchFilter) return true;
+    const query = searchFilter.toLowerCase();
+    return (
+      stock.symbol?.toLowerCase().includes(query) ||
+      stock.name?.toLowerCase().includes(query)
+    );
+  });
+
   // Sort stocks
-  const sortedStocks = [...stocks].sort((a, b) => {
+  const sortedStocks = [...filteredStocks].sort((a, b) => {
     let aVal = a[sortField];
     let bVal = b[sortField];
     
@@ -66,10 +83,35 @@ const StockTable = ({ stocks, loading, onRefresh, onSelectStock, marketName, wat
   return (
     <div className="stock-table-container">
       <div className="table-header">
-        <span className="stock-count">{stocks.length} stocks</span>
-        <button className="refresh-btn" onClick={onRefresh} title="Refresh data">
-          <FiRefreshCw />
-        </button>
+        <div className="header-left">
+          <span className="stock-count">
+            {filteredStocks.length}{searchFilter && filteredStocks.length !== stocks.length ? ` of ${stocks.length}` : ''} stocks
+          </span>
+          <div className="table-search">
+            <FiSearch className="search-icon" />
+            <input
+              type="text"
+              placeholder="Filter stocks..."
+              value={searchFilter}
+              onChange={(e) => setSearchFilter(e.target.value)}
+            />
+            {searchFilter && (
+              <button className="clear-search" onClick={() => setSearchFilter('')}>
+                <FiX />
+              </button>
+            )}
+          </div>
+        </div>
+        <div className="header-right">
+          {lastUpdated && (
+            <span className="last-updated">
+              <FiClock /> Updated {formatLastUpdated(lastUpdated)}
+            </span>
+          )}
+          <button className="refresh-btn" onClick={onRefresh} title="Refresh data">
+            <FiRefreshCw />
+          </button>
+        </div>
       </div>
       
       <div className="table-wrapper">
