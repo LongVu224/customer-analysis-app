@@ -1,7 +1,7 @@
 {
-  "name": "stock-service",
+  "name": "investment-service",
   "version": "1.0.0",
-  "description": "Stock trends and investment suggestions service",
+  "description": "Investment trends and suggestions service",
   "main": "app.js",
   "scripts": {
     "start": "node app.js",

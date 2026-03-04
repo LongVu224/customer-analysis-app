@@ -271,7 +271,7 @@ const Stocks = () => {
             className={`view-tab ${viewMode === 'board' ? 'active' : ''}`}
             onClick={() => setViewMode('board')}
           >
-            <FiTable /> Market Tables
+            <FiTable /> Stock Market
           </button>
           <button
             className={`view-tab ${viewMode === 'details' ? 'active' : ''}`}
@@ -281,7 +281,7 @@ const Stocks = () => {
           </button>
         </div>
 
-        {/* Board View - Shows US and Finland Market Tables */}
+        {/* Board View - Shows US and Finland Market */}
         {viewMode === 'board' && (
           <div className="market-boards">
             {/* Market Tabs */}

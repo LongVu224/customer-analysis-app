@@ -24,7 +24,7 @@ app.use('/api/stocks', stockRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
-  res.json({ status: 'healthy', service: 'stock-service', timestamp: new Date().toISOString() });
+  res.json({ status: 'healthy', service: 'investment-service', timestamp: new Date().toISOString() });
 });
 
 // Error handling
@@ -38,7 +38,7 @@ mongoose.connect(config.mongoURI)
   .then(() => {
     console.log('✓ Connected to MongoDB');
     app.listen(config.port, () => {
-      console.log(`✓ Stock service running on port ${config.port}`);
+      console.log(`✓ Investment service running on port ${config.port}`);
       console.log(`  - API Base: http://localhost:${config.port}/api/stocks`);
       console.log(`  - Health: http://localhost:${config.port}/health`);
     });

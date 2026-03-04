@@ -34,16 +34,16 @@ services:
     env_file:
       - ./backend/monitor-service/.env
 
-  # Stock Service
-  stock-service:
+  # Investment Service
+  investment-service:
     build:
-      context: ./backend/stock-service
+      context: ./backend/investment-service
       dockerfile: .dockerfile
-    container_name: finance-analysis-stock
+    container_name: finance-analysis-investment
     ports:
       - "3004:3004"
     env_file:
-      - ./backend/stock-service/.env
+      - ./backend/investment-service/.env
 
   # Frontend
   frontend:
@@ -62,4 +62,4 @@ services:
       - upload-service
       - insights-service
       - monitor-service
-      - stock-service
+      - investment-service

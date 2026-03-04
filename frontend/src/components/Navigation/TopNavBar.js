@@ -122,19 +122,19 @@ const TopNavBar = () => {
           <span className="nav-text">Insights</span>
         </NavLinkStyled>
         
-        <NavLinkStyled to="/Stocks">
+        <NavLinkStyled to="/Upload">
+          <FiUploadCloud />
+          <span className="nav-text">Upload</span>
+        </NavLinkStyled>
+        
+        <NavLinkStyled to="/Investment">
           <FiTrendingUp />
-          <span className="nav-text">Stocks</span>
+          <span className="nav-text">Investment</span>
         </NavLinkStyled>
         
         <NavLinkStyled to="/Monitor">
           <FiActivity />
           <span className="nav-text">Monitor</span>
-        </NavLinkStyled>
-        
-        <NavLinkStyled to="/Upload">
-          <FiUploadCloud />
-          <span className="nav-text">Upload</span>
         </NavLinkStyled>
       </NavLinks>
     </NavBar>
