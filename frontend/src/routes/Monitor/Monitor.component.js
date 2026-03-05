@@ -156,7 +156,7 @@ const Monitor = () => {
         <h1 className="monitor-title"><span>System Monitor</span></h1>
 
         {/* View Mode Tabs */}
-        <div className="view-tabs">
+        <div className="view-mode-tabs">
           <button
             className={`view-tab ${viewMode === 'dashboard' ? 'active' : ''}`}
             onClick={() => setViewMode('dashboard')}

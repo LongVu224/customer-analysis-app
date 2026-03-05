@@ -64,16 +64,16 @@ const Insights = (props) => {
         <div className="wrap container">
           <h1 className="insights-title"><span>Insights</span></h1>
           
-          {/* Tab Navigation */}
-          <div className="insights-tabs">
+          {/* View Mode Tabs */}
+          <div className="view-mode-tabs">
             <button 
-              className={`insights-tab ${activeTab === 'dashboard' ? 'active' : ''}`}
+              className={`view-tab ${activeTab === 'dashboard' ? 'active' : ''}`}
               onClick={() => setActiveTab('dashboard')}
             >
               <HiOutlineChartPie /> Dashboard
             </button>
             <button 
-              className={`insights-tab ${activeTab === 'details' ? 'active' : ''}`}
+              className={`view-tab ${activeTab === 'details' ? 'active' : ''}`}
               onClick={() => setActiveTab('details')}
             >
               <HiOutlineChartBar /> Detailed Charts

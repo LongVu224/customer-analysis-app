@@ -233,55 +233,47 @@
   }
 }
 
-// Tab Navigation
-.insights-tabs {
+// View Mode Tabs
+.view-mode-tabs {
   display: flex;
-  gap: 0.5rem;
-  margin-bottom: 2rem;
-  padding: 0.25rem;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 0.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.insights-tab {
-  flex: 1;
-  display: flex;
-  align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 0.875rem 1.5rem;
-  font-size: 1rem;
-  font-weight: 600;
-  font-family: inherit;
-  color: rgba(255, 255, 255, 0.6);
-  background: transparent;
-  border: none;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
   
-  svg {
-    font-size: 1.25rem;
-    transition: transform 0.2s ease;
-  }
-  
-  &:hover {
-    color: rgba(255, 255, 255, 0.8);
+  .view-tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
     background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
     
     svg {
-      transform: scale(1.1);
+      font-size: 1.1rem;
     }
-  }
-  
-  &.active {
-    color: white;
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.4), rgba(139, 92, 246, 0.4));
-    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
     
-    svg {
-      color: #a5b4fc;
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.3);
+      color: white;
+    }
+    
+    &.active {
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      border-color: transparent;
+      color: white;
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
     }
   }
 }
@@ -313,8 +305,12 @@
     }
   }
   
-  .insights-tabs {
+  .view-mode-tabs {
     flex-direction: column;
+    
+    .view-tab {
+      justify-content: center;
+    }
   }
 }
 
