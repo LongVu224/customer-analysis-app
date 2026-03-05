@@ -5,6 +5,7 @@ const config = require('../config/config');
 const StockData = require('../models/StockData');
 const Watchlist = require('../models/Watchlist');
 const MarketCustomSymbols = require('../models/MarketCustomSymbols');
+const { saveProcessLog } = require('../models/ProcessLog');
 
 // Initialize cache with 15 minute TTL
 const stockCache = new NodeCache({ stdTTL: config.cacheTTL });
@@ -250,15 +251,18 @@ router.get('/quote/:symbol', async (req, res) => {
 
     const quote = await fetchStockQuote(symbol);
     if (!quote) {
+      await saveProcessLog('investment-service', 'getQuote', 'Error', `Stock not found: ${symbol}`);
       return res.status(404).json({ success: false, message: 'Stock not found or API limit reached' });
     }
 
     // Cache the result
     stockCache.set(`quote_${symbol}`, quote);
+    await saveProcessLog('investment-service', 'getQuote', 'Information', `Fetched quote for ${symbol}`);
 
     res.json({ success: true, data: quote });
   } catch (error) {
     console.error('Quote error:', error);
+    await saveProcessLog('investment-service', 'getQuote', 'Error', `Error fetching quote: ${error.message}`);
     res.status(500).json({ success: false, message: error.message });
   }
 });
@@ -315,10 +319,12 @@ router.get('/analysis/:symbol', async (req, res) => {
 
     // Cache the result
     stockCache.set(`analysis_${symbol}`, stockData);
+    await saveProcessLog('investment-service', 'getAnalysis', 'Information', `Analysis completed for ${symbol}: ${stockData.suggestion.signal}`);
 
     res.json({ success: true, data: stockData });
   } catch (error) {
     console.error('Analysis error:', error);
+    await saveProcessLog('investment-service', 'getAnalysis', 'Error', `Error analyzing ${req.params.symbol}: ${error.message}`);
     res.status(500).json({ success: false, message: error.message });
   }
 });
@@ -410,6 +416,7 @@ router.get('/market/:marketId', async (req, res) => {
       await new Promise(resolve => setTimeout(resolve, 50));
     }
 
+    await saveProcessLog('investment-service', 'getMarket', 'Information', `Fetched ${results.length} stocks for ${market.name} market`);
     res.json({ 
       success: true, 
       market: market.name,
@@ -417,6 +424,7 @@ router.get('/market/:marketId', async (req, res) => {
     });
   } catch (error) {
     console.error('Market error:', error);
+    await saveProcessLog('investment-service', 'getMarket', 'Error', `Error fetching market ${req.params.marketId}: ${error.message}`);
     res.status(500).json({ success: false, message: error.message });
   }
 });
@@ -505,11 +513,13 @@ router.post('/market/:marketId/add', async (req, res) => {
     if (!marketCustom.symbols.includes(upperSymbol)) {
       marketCustom.symbols.push(upperSymbol);
       await marketCustom.save();
+      await saveProcessLog('investment-service', 'addToMarket', 'Information', `Added ${upperSymbol} to ${marketId} market`);
     }
 
     res.json({ success: true, data: marketCustom });
   } catch (error) {
     console.error('Add to market error:', error);
+    await saveProcessLog('investment-service', 'addToMarket', 'Error', `Error adding symbol to market: ${error.message}`);
     res.status(500).json({ success: false, message: error.message });
   }
 });
@@ -531,11 +541,13 @@ router.post('/market/:marketId/remove', async (req, res) => {
     if (marketCustom) {
       marketCustom.symbols = marketCustom.symbols.filter(s => s !== symbol.toUpperCase());
       await marketCustom.save();
+      await saveProcessLog('investment-service', 'removeFromMarket', 'Information', `Removed ${symbol.toUpperCase()} from ${marketId} market`);
     }
 
     res.json({ success: true, data: marketCustom });
   } catch (error) {
     console.error('Remove from market error:', error);
+    await saveProcessLog('investment-service', 'removeFromMarket', 'Error', `Error removing symbol from market: ${error.message}`);
     res.status(500).json({ success: false, message: error.message });
   }
 });
@@ -584,11 +596,13 @@ router.post('/watchlist/add', async (req, res) => {
     if (!watchlist.symbols.includes(upperSymbol)) {
       watchlist.symbols.push(upperSymbol);
       await watchlist.save();
+      await saveProcessLog('investment-service', 'addToWatchlist', 'Information', `Added ${upperSymbol} to watchlist`);
     }
 
     res.json({ success: true, data: watchlist });
   } catch (error) {
     console.error('Add to watchlist error:', error);
+    await saveProcessLog('investment-service', 'addToWatchlist', 'Error', `Error adding to watchlist: ${error.message}`);
     res.status(500).json({ success: false, message: error.message });
   }
 });
@@ -608,11 +622,13 @@ router.post('/watchlist/remove', async (req, res) => {
     if (watchlist) {
       watchlist.symbols = watchlist.symbols.filter(s => s !== symbol.toUpperCase());
       await watchlist.save();
+      await saveProcessLog('investment-service', 'removeFromWatchlist', 'Information', `Removed ${symbol.toUpperCase()} from watchlist`);
     }
 
     res.json({ success: true, data: watchlist });
   } catch (error) {
     console.error('Remove from watchlist error:', error);
+    await saveProcessLog('investment-service', 'removeFromWatchlist', 'Error', `Error removing from watchlist: ${error.message}`);
     res.status(500).json({ success: false, message: error.message });
   }
 });

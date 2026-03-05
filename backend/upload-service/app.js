@@ -26,6 +26,15 @@ app.use(bodyParser.urlencoded({
 }));
 app.use(cors());
 
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'healthy', 
+    service: 'upload-service',
+    timestamp: new Date().toISOString() 
+  });
+});
+
 app.use('/upload', uploadApi)
 
 // catch 404 and forward to error handler
