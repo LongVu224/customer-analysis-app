@@ -62,7 +62,8 @@ const Insights = (props) => {
       {props.insights.loading ? 
         <Spinner /> : 
         <div className="wrap container">
-          <h1 className="insights-title"><span>Insights</span></h1>
+          <h1 className="insights-title">Insights</h1>
+          <div className="title-accent"></div>
           
           {/* View Mode Tabs */}
           <div className="view-mode-tabs">

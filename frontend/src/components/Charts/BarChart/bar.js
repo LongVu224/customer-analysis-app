@@ -12,24 +12,26 @@ const CustomTooltip = ({ active, payload, label }) => {
     
     return (
       <div style={{
-        background: 'rgba(15, 23, 42, 0.95)',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
+        background: 'rgba(15, 23, 42, 0.8)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        border: '1px solid rgba(255, 255, 255, 0.2)',
         borderRadius: '8px',
         padding: '12px 16px',
-        boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
-        minWidth: '180px'
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+        minWidth: '160px'
       }}>
-        <p style={{ color: 'white', fontWeight: 600, marginBottom: '10px', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '8px' }}>{label}</p>
+        <p style={{ color: 'rgba(255, 255, 255, 0.6)', fontWeight: 500, fontSize: '12px', marginBottom: '8px' }}>{label}</p>
         
         {hasGroups ? (
           <>
             {/* Info/Success section */}
             <div style={{ marginBottom: '10px' }}>
-              <p style={{ color: '#22d3ee', fontWeight: 600, fontSize: '12px', marginBottom: '4px' }}>
+              <p style={{ color: '#22d3ee', fontWeight: 700, fontSize: '12px', marginBottom: '4px' }}>
                 ✓ Success ({infoTotal})
               </p>
               {infoItems.map((entry, index) => (
-                <p key={index} style={{ color: '#e2e8f0', margin: '2px 0', fontSize: '12px', paddingLeft: '12px' }}>
+                <p key={index} style={{ color: 'white', margin: '2px 0', fontSize: '12px', paddingLeft: '12px' }}>
                   <span style={{ color: entry.color, marginRight: '6px' }}>●</span>
                   {entry.name}: {entry.value || 0}
                 </p>
@@ -38,11 +40,11 @@ const CustomTooltip = ({ active, payload, label }) => {
             
             {/* Error section */}
             <div>
-              <p style={{ color: '#f87171', fontWeight: 600, fontSize: '12px', marginBottom: '4px' }}>
+              <p style={{ color: '#f87171', fontWeight: 700, fontSize: '12px', marginBottom: '4px' }}>
                 ✕ Errors ({errorTotal})
               </p>
               {errorItems.map((entry, index) => (
-                <p key={index} style={{ color: '#e2e8f0', margin: '2px 0', fontSize: '12px', paddingLeft: '12px' }}>
+                <p key={index} style={{ color: 'white', margin: '2px 0', fontSize: '12px', paddingLeft: '12px' }}>
                   <span style={{ color: entry.color, marginRight: '6px' }}>●</span>
                   {entry.name}: {entry.value || 0}
                 </p>
@@ -52,14 +54,14 @@ const CustomTooltip = ({ active, payload, label }) => {
         ) : (
           <>
             {payload.map((entry, index) => (
-              <p key={index} style={{ color: '#e2e8f0', margin: '4px 0' }}>
+              <p key={index} style={{ color: 'white', margin: '4px 0' }}>
                 <span style={{ color: entry.color, marginRight: '6px' }}>●</span>
-                {entry.name}: <span style={{ fontWeight: 500 }}>{entry.value?.toLocaleString() || 0}</span>
+                {entry.name}: <span style={{ fontWeight: 700 }}>{entry.value?.toLocaleString() || 0}</span>
               </p>
             ))}
             {payload.length > 1 && (
-              <p style={{ color: '#94a3b8', margin: '8px 0 0', paddingTop: '8px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-                Total: <span style={{ fontWeight: 500, color: 'white' }}>{payload.reduce((sum, e) => sum + (e.value || 0), 0).toLocaleString()}</span>
+              <p style={{ color: 'rgba(255, 255, 255, 0.6)', margin: '8px 0 0', paddingTop: '8px', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
+                Total: <span style={{ fontWeight: 700, color: 'white' }}>{payload.reduce((sum, e) => sum + (e.value || 0), 0).toLocaleString()}</span>
               </p>
             )}
           </>
@@ -130,17 +132,18 @@ export default function Chart(props) {
             <stop offset="100%" stopColor="#06b6d4" stopOpacity={0.8} />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
         <XAxis 
           dataKey={props.xaxisKey} 
-          stroke="rgba(255,255,255,0.5)"
-          tick={{ fill: 'rgba(255,255,255,0.7)', fontSize: 12 }}
-          axisLine={{ stroke: 'rgba(255,255,255,0.2)' }}
+          axisLine={false}
+          tickLine={false}
+          tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 12 }}
+          dy={10}
         />
         <YAxis 
-          stroke="rgba(255,255,255,0.5)"
-          tick={{ fill: 'rgba(255,255,255,0.7)', fontSize: 12 }}
-          axisLine={{ stroke: 'rgba(255,255,255,0.2)' }}
+          axisLine={false}
+          tickLine={false}
+          tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 12 }}
           allowDecimals={false}
         />
         <Tooltip content={<CustomTooltip />} />

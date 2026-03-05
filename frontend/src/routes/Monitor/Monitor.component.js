@@ -153,7 +153,8 @@ const Monitor = () => {
       </div>
 
       <div className="wrap container">
-        <h1 className="monitor-title"><span>System Monitor</span></h1>
+        <h1 className="monitor-title">System Monitor</h1>
+        <div className="title-accent"></div>
 
         {/* View Mode Tabs */}
         <div className="view-mode-tabs">

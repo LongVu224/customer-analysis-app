@@ -307,7 +307,8 @@ const Stocks = () => {
       </div>
 
       <div className="wrap container">
-        <h1 className="stocks-title"><span>Investment</span></h1>
+        <h1 className="stocks-title">Investment</h1>
+        <div className="title-accent"></div>
 
         {/* View Mode Tabs */}
         <div className="view-mode-tabs">
