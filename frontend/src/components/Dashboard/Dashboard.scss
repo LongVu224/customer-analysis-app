@@ -34,12 +34,6 @@
     border-radius: 1.5rem;
     padding: 1.5rem;
     margin-bottom: 1.5rem;
-    transition: border-color 0.3s ease, background 0.3s ease;
-    
-    &:hover {
-      border-color: rgba(255, 255, 255, 0.2);
-      background: rgba(255, 255, 255, 0.1);
-    }
   }
 
   &__section-title {

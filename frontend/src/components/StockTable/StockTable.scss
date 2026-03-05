@@ -6,12 +6,6 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 1rem;
   overflow: hidden;
-  transition: border-color 0.3s ease, background 0.3s ease;
-  
-  &:hover {
-    border-color: rgba(255, 255, 255, 0.2);
-    background: rgba(255, 255, 255, 0.1);
-  }
 }
 
 .table-header {
@@ -411,7 +405,7 @@
       border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 
       &:hover {
-        background: rgba(99, 102, 241, 0.1);
+        background: rgba(255, 255, 255, 0.05);
       }
 
       &:last-child {
@@ -541,40 +535,63 @@
   }
 }
 
-// Custom stocks column
-.custom-col,
-.custom-cell {
-  width: 60px;
+// Suggestion column
+.suggestion-col {
+  width: 100px;
   text-align: center;
 }
 
-.custom-cell {
-  .remove-custom-btn {
-    background: rgba(239, 68, 68, 0.15);
-    border: none;
-    color: rgba(239, 68, 68, 0.7);
-    width: 34px;
-    height: 34px;
-    border-radius: 8px;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
+.suggestion-cell {
+  text-align: center;
+}
 
-    svg {
-      font-size: 0.9rem;
-    }
+.suggestion-badge {
+  display: inline-block;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 
-    &:hover {
-      background: rgba(239, 68, 68, 0.3);
-      color: #ef4444;
-    }
+  &.suggestion--strong-buy {
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+  }
+
+  &.suggestion--buy {
+    background: rgba(52, 211, 153, 0.15);
+    color: #6ee7b7;
+    border: 1px solid rgba(52, 211, 153, 0.25);
+  }
+
+  &.suggestion--hold {
+    background: rgba(251, 191, 36, 0.15);
+    color: #fcd34d;
+    border: 1px solid rgba(251, 191, 36, 0.25);
+  }
+
+  &.suggestion--sell {
+    background: rgba(251, 146, 60, 0.15);
+    color: #fdba74;
+    border: 1px solid rgba(251, 146, 60, 0.25);
+  }
+
+  &.suggestion--strong-sell {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.3);
   }
 }
 
 .actions-cell {
   text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding-right: 1rem !important;
 
   .view-btn {
     background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
@@ -590,6 +607,32 @@
     &:hover {
       transform: scale(1.05);
       box-shadow: 0 4px 16px rgba(99, 102, 241, 0.5);
+    }
+  }
+
+  .remove-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 8px;
+    color: #f87171;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    &:hover {
+      background: rgba(239, 68, 68, 0.3);
+      border-color: rgba(239, 68, 68, 0.5);
+      transform: scale(1.05);
     }
   }
 }

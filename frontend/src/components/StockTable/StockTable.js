@@ -4,6 +4,18 @@ import './StockTable.scss';
 
 const API_BASE = process.env.REACT_APP_STOCK_SERVICE_URL || 'http://localhost:3004';
 
+// Helper function to get suggestion based on stock performance
+const getSuggestion = (stock) => {
+  const changePercent = stock.changePercent || 0;
+  const priceVsHigh = stock.high ? (stock.currentPrice / stock.high) : 1;
+  
+  if (changePercent >= 3) return { text: 'Strong Buy', type: 'strong-buy' };
+  if (changePercent >= 1) return { text: 'Buy', type: 'buy' };
+  if (changePercent >= -1) return { text: 'Hold', type: 'hold' };
+  if (changePercent >= -3) return { text: 'Sell', type: 'sell' };
+  return { text: 'Strong Sell', type: 'strong-sell' };
+};
+
 const StockTable = ({ 
   stocks, 
   loading, 
@@ -49,14 +61,16 @@ const StockTable = ({
     }
   };
 
-  // Handle adding stock to market
+  // Handle adding stock to market or watchlist
   const handleAddStock = (symbol) => {
-    if (onAddToMarket) {
+    if (isWatchlistView && onAddToWatchlist) {
+      onAddToWatchlist(symbol);
+    } else if (onAddToMarket) {
       onAddToMarket(symbol);
-      setShowAddStock(false);
-      setAddStockQuery('');
-      setAddStockResults([]);
     }
+    setShowAddStock(false);
+    setAddStockQuery('');
+    setAddStockResults([]);
   };
 
   // Debounced search for add stock
@@ -130,11 +144,61 @@ const StockTable = ({
   if (!stocks || stocks.length === 0) {
     return (
       <div className="stock-table-empty">
-        <p>{isWatchlistView ? 'Your watchlist is empty. Add stocks from US or Finland markets.' : 'No stock data available'}</p>
+        <p>{isWatchlistView ? 'Your watchlist is empty. Click "Add Stock" to search and add stocks.' : 'No stock data available'}</p>
+        {isWatchlistView && onAddToWatchlist && (
+          <button className="add-stock-btn" onClick={() => setShowAddStock(true)}>
+            <FiPlus /> Add Stock
+          </button>
+        )}
         {!isWatchlistView && (
           <button className="refresh-btn" onClick={onRefresh}>
             <FiRefreshCw /> Retry
           </button>
+        )}
+        {/* Add Stock Modal for empty state */}
+        {showAddStock && (
+          <div className="add-stock-modal">
+            <div className="add-stock-search">
+              <FiSearch className="search-icon" />
+              <input
+                type="text"
+                placeholder="Search stocks to add to watchlist..."
+                value={addStockQuery}
+                onChange={(e) => setAddStockQuery(e.target.value)}
+                autoFocus
+              />
+              <button className="close-modal" onClick={() => {
+                setShowAddStock(false);
+                setAddStockQuery('');
+                setAddStockResults([]);
+              }}>
+                <FiX />
+              </button>
+            </div>
+            {addStockLoading && (
+              <div className="add-stock-loading">Searching...</div>
+            )}
+            {addStockResults.length > 0 && (
+              <div className="add-stock-results">
+                {addStockResults.map((result) => (
+                  <div 
+                    key={result.symbol} 
+                    className="add-stock-item"
+                    onClick={() => handleAddStock(result.symbol)}
+                  >
+                    <span className="symbol">{result.symbol}</span>
+                    <span className="name">{result.name}</span>
+                    <button className="add-btn">
+                      <FiPlus /> Add
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            {addStockQuery && !addStockLoading && addStockResults.length === 0 && (
+              <div className="no-results">No stocks found</div>
+            )}
+          </div>
         )}
       </div>
     );
@@ -161,11 +225,11 @@ const StockTable = ({
               </button>
             )}
           </div>
-          {onAddToMarket && !isWatchlistView && (
+          {(onAddToMarket || (isWatchlistView && onAddToWatchlist)) && (
             <button 
               className="add-stock-btn" 
               onClick={() => setShowAddStock(!showAddStock)}
-              title={`Add stock to ${marketName} market`}
+              title={isWatchlistView ? 'Add stock to watchlist' : `Add stock to ${marketName} market`}
             >
               <FiPlus /> Add Stock
             </button>
@@ -190,7 +254,7 @@ const StockTable = ({
             <FiSearch className="search-icon" />
             <input
               type="text"
-              placeholder={`Search stocks to add to ${marketName}...`}
+              placeholder={isWatchlistView ? 'Search stocks to add to watchlist...' : `Search stocks to add to ${marketName}...`}
               value={addStockQuery}
               onChange={(e) => setAddStockQuery(e.target.value)}
               autoFocus
@@ -257,8 +321,8 @@ const StockTable = ({
               <th onClick={() => handleSort('open')} className="sortable align-right">
                 Open <SortIcon field="open" />
               </th>
+              <th className="suggestion-col">Suggestion</th>
               {onAddToWatchlist && <th className="watchlist-col">Watchlist</th>}
-              {onRemoveFromMarket && !isWatchlistView && <th className="custom-col">Custom</th>}
               <th className="actions-col">Actions</th>
             </tr>
           </thead>
@@ -292,6 +356,16 @@ const StockTable = ({
                 <td className="align-right">${stock.high?.toFixed(2)}</td>
                 <td className="align-right">${stock.low?.toFixed(2)}</td>
                 <td className="align-right">${stock.open?.toFixed(2)}</td>
+                <td className="suggestion-cell">
+                  {(() => {
+                    const suggestion = getSuggestion(stock);
+                    return (
+                      <span className={`suggestion-badge suggestion--${suggestion.type}`}>
+                        {suggestion.text}
+                      </span>
+                    );
+                  })()}
+                </td>
                 {onAddToWatchlist && (
                   <td className="watchlist-cell">
                     <button
@@ -310,22 +384,6 @@ const StockTable = ({
                     </button>
                   </td>
                 )}
-                {onRemoveFromMarket && !isWatchlistView && (
-                  <td className="custom-cell">
-                    {stock.isCustom && (
-                      <button
-                        className="remove-custom-btn"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onRemoveFromMarket(stock.symbol);
-                        }}
-                        title={`Remove from ${marketName} market`}
-                      >
-                        <FiTrash2 />
-                      </button>
-                    )}
-                  </td>
-                )}
                 <td className="actions-cell">
                   <button 
                     className="view-btn"
@@ -336,6 +394,18 @@ const StockTable = ({
                   >
                     View
                   </button>
+                  {onRemoveFromMarket && !isWatchlistView && (
+                    <button
+                      className="remove-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onRemoveFromMarket(stock.symbol);
+                      }}
+                      title={`Remove from ${marketName}`}
+                    >
+                      <FiTrash2 />
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}
