@@ -175,15 +175,20 @@ monitorApi.get('/stats', async (req, res) => {
 // Get daily chart data (logs per day, grouped by service and type)
 monitorApi.get('/stats/daily', async (req, res) => {
   try {
-    const { days = 7 } = req.query;
+    const { days = 7, service, type } = req.query;
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - parseInt(days));
 
+    // Build match filter
+    const matchFilter = {
+      date: { $gte: startDate.toISOString() }
+    };
+    if (service) matchFilter.serviceName = service;
+    if (type) matchFilter.type = type;
+
     const stats = await ProcessLog.aggregate([
       {
-        $match: {
-          date: { $gte: startDate.toISOString() }
-        }
+        $match: matchFilter
       },
       {
         $addFields: {

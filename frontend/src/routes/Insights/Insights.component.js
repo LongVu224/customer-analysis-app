@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import { Spinner } from '../../components/Spinner'
 import BarChart from '../../components/Charts/BarChart/bar'
 import LineChart from '../../components/Charts/LineChart/line'
 import AreaChart from '../../components/Charts/AreaChart/area'
 import Dashboard from '../../components/Dashboard'
+import CustomSelect from '../../components/CustomSelect'
 import { HiOutlineChartPie, HiOutlineChartBar } from 'react-icons/hi2'
 import './Insights.scss';
 
@@ -47,9 +48,6 @@ const Insights = (props) => {
     }
   }, [props.insights.insights, props.insights.salesData]);
 
-  // Ref to reset chart select
-  const chartSelectRef = useRef(null);
-
   return (
     <div className="insights-root">
       {/* Animated background elements */}
@@ -88,21 +86,20 @@ const Insights = (props) => {
               
               {/* Group selector for filtered dashboard view */}
               <div className="insights-group mb-3 insights-menu" style={{ marginTop: '2rem' }}>
-                <select 
-                  className="form-control" 
+                <CustomSelect
                   value={groupId}
-                  onChange={(e) => {
-                    setGroupId(e.target.value)
-                    setSelectedGroup(insights.find(insight => insight._id === e.target.value) || {})
+                  onChange={(value) => {
+                    setGroupId(value)
+                    setSelectedGroup(insights.find(insight => insight._id === value) || {})
                   }}
-                >
-                  <option value="">All Data (Aggregated View)</option>
-                  {insights && insights.filter(i => i.sale).map((insight, index) => ( 
-                    <option key={index} value={insight._id}>
-                      {insight.sale.title}
-                    </option>
-                  ))}
-                </select>
+                  options={[
+                    { value: '', label: 'All Data (Aggregated View)' },
+                    ...((insights && insights.filter(i => i.sale).map(insight => ({
+                      value: insight._id,
+                      label: insight.sale.title
+                    }))) || [])
+                  ]}
+                />
               </div>
             </div>
           )}
@@ -124,40 +121,36 @@ const Insights = (props) => {
               </div>
               
               <div className="insights-group mb-3 insights-menu">
-                <select 
-                  className="form-control" 
-                  onChange={(e) => {
-                    setGroupId(e.target.value)
-                    setSelectedGroup(insights.find(insight => insight._id === e.target.value) || {})
+                <CustomSelect
+                  value={groupId}
+                  onChange={(value) => {
+                    setGroupId(value)
+                    setSelectedGroup(insights.find(insight => insight._id === value) || {})
                     setSelectedChart("")
-                    if (chartSelectRef.current) {
-                      chartSelectRef.current.selectedIndex = 0;
-                    }
                   }}
-                >
-                  <option value="">Select Data Group</option>
-                  {insights && insights.filter(i => i.sale).map((insight, index) => ( 
-                    <option key={index} value={insight._id}>
-                      {insight.sale.title}
-                    </option>
-                  ))}
-                </select>
+                  options={[
+                    { value: '', label: 'Select Data Group' },
+                    ...((insights && insights.filter(i => i.sale).map(insight => ({
+                      value: insight._id,
+                      label: insight.sale.title
+                    }))) || [])
+                  ]}
+                />
               </div>
               
               { groupId &&
                 <div className="insights-group mb-3 insights-menu">
-                  <select
-                    className="form-control"
-                    ref={chartSelectRef}
+                  <CustomSelect
                     value={selectedChart}
-                    onChange={(e) => setSelectedChart(e.target.value)}
-                  >
-                    <option value="">Select Chart Type</option>
-                    <option value="trend">📈 Daily Revenue Trend</option>
-                    <option value="sales">🌍 Country Sales Quantity</option>
-                    <option value="revenue">💰 Country Revenue</option>
-                    <option value="topProduct">📦 Top Product Sales</option>
-                  </select>
+                    onChange={(value) => setSelectedChart(value)}
+                    options={[
+                      { value: '', label: 'Select Chart Type' },
+                      { value: 'trend', label: '📈 Daily Revenue Trend' },
+                      { value: 'sales', label: '🌍 Country Sales Quantity' },
+                      { value: 'revenue', label: '💰 Country Revenue' },
+                      { value: 'topProduct', label: '📦 Top Product Sales' }
+                    ]}
+                  />
                 </div>
               }
               

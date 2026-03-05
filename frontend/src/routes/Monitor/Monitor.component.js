@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react"
 import { FiActivity, FiServer, FiAlertCircle, FiCheckCircle, FiClock, FiRefreshCw, FiSearch, FiX, FiChevronLeft, FiChevronRight, FiFilter, FiCalendar } from "react-icons/fi"
 import { Spinner } from '../../components/Spinner'
 import BarChart from '../../components/Charts/BarChart/bar'
+import CustomSelect from '../../components/CustomSelect'
 import './Monitor.scss';
 
 const API_BASE = process.env.REACT_APP_MONITOR_SERVICE_ENDPOINT || 'http://localhost:8999';
@@ -56,7 +57,11 @@ const Monitor = () => {
   const fetchChartStats = useCallback(async () => {
     try {
       setChartLoading(true);
-      const response = await fetch(`${API_BASE}/monitor/stats/daily?days=${timeRange}`);
+      const params = new URLSearchParams({ days: timeRange.toString() });
+      if (selectedService) params.append('service', selectedService);
+      if (selectedType) params.append('type', selectedType);
+      
+      const response = await fetch(`${API_BASE}/monitor/stats/daily?${params}`);
       const data = await response.json();
       
       if (data.success) {
@@ -67,7 +72,7 @@ const Monitor = () => {
     } finally {
       setChartLoading(false);
     }
-  }, [timeRange]);
+  }, [timeRange, selectedService, selectedType]);
 
   // Fetch logs with filters
   const fetchLogs = useCallback(async (page = 1) => {
@@ -101,12 +106,12 @@ const Monitor = () => {
     fetchServiceStatus();
   }, [fetchServiceStatus]);
 
-  // Fetch chart stats when time range changes or entering logs view
+  // Fetch chart stats when time range or filters change
   useEffect(() => {
     if (viewMode === 'logs') {
       fetchChartStats();
     }
-  }, [viewMode, timeRange, fetchChartStats]);
+  }, [viewMode, timeRange, selectedService, selectedType, fetchChartStats]);
 
   // Fetch logs when filters change
   useEffect(() => {
@@ -252,26 +257,26 @@ const Monitor = () => {
             {/* Filters */}
             <div className="logs-filters">
               <div className="filter-group">
-                <select 
+                <CustomSelect
                   value={selectedService}
-                  onChange={(e) => setSelectedService(e.target.value)}
-                  className="filter-select"
-                >
-                  <option value="">All Services</option>
-                  <option value="upload-service">Upload Service</option>
-                  <option value="insights-service">Insights Service</option>
-                  <option value="investment-service">Investment Service</option>
-                </select>
+                  onChange={(value) => setSelectedService(value)}
+                  options={[
+                    { value: '', label: 'All Services' },
+                    { value: 'upload-service', label: 'Upload Service' },
+                    { value: 'insights-service', label: 'Insights Service' },
+                    { value: 'investment-service', label: 'Investment Service' }
+                  ]}
+                />
                 
-                <select 
+                <CustomSelect
                   value={selectedType}
-                  onChange={(e) => setSelectedType(e.target.value)}
-                  className="filter-select"
-                >
-                  <option value="">All Types</option>
-                  <option value="Information">Information</option>
-                  <option value="Error">Error</option>
-                </select>
+                  onChange={(value) => setSelectedType(value)}
+                  options={[
+                    { value: '', label: 'All Types' },
+                    { value: 'Information', label: 'Information' },
+                    { value: 'Error', label: 'Error' }
+                  ]}
+                />
               </div>
               
               <div className="search-box">
