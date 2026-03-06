@@ -7,11 +7,16 @@ param dockerHubUsername string
 @secure()
 param dockerHubPassword string
 
+// Azure resources configuration
+param keyVaultName string
+param storageAccountName string
+
 // Container App names
 param frontendAppName string
 param uploadServiceAppName string
 param insightsServiceAppName string
 param monitorServiceAppName string
+param investmentServiceAppName string
 
 // Image tags (default to 'latest', override in pipeline)
 param imageTag string = 'latest'
@@ -35,6 +40,9 @@ resource containerAppsEnvironment 'Microsoft.App/managedEnvironments@2024-03-01'
 resource uploadServiceApp 'Microsoft.App/containerApps@2024-03-01' = {
   name: uploadServiceAppName
   location: location
+  identity: {
+    type: 'SystemAssigned'
+  }
   properties: {
     managedEnvironmentId: containerAppsEnvironment.id
     configuration: {
@@ -81,6 +89,14 @@ resource uploadServiceApp 'Microsoft.App/containerApps@2024-03-01' = {
               name: 'PORT'
               value: '8000'
             }
+            {
+              name: 'KEY_VAULT_NAME'
+              value: keyVaultName
+            }
+            {
+              name: 'STORAGE_NAME'
+              value: storageAccountName
+            }
           ]
         }
       ]
@@ -106,6 +122,9 @@ resource uploadServiceApp 'Microsoft.App/containerApps@2024-03-01' = {
 resource insightsServiceApp 'Microsoft.App/containerApps@2024-03-01' = {
   name: insightsServiceAppName
   location: location
+  identity: {
+    type: 'SystemAssigned'
+  }
   properties: {
     managedEnvironmentId: containerAppsEnvironment.id
     configuration: {
@@ -152,6 +171,14 @@ resource insightsServiceApp 'Microsoft.App/containerApps@2024-03-01' = {
               name: 'PORT'
               value: '9000'
             }
+            {
+              name: 'KEY_VAULT_NAME'
+              value: keyVaultName
+            }
+            {
+              name: 'STORAGE_NAME'
+              value: storageAccountName
+            }
           ]
         }
       ]
@@ -177,6 +204,9 @@ resource insightsServiceApp 'Microsoft.App/containerApps@2024-03-01' = {
 resource monitorServiceApp 'Microsoft.App/containerApps@2024-03-01' = {
   name: monitorServiceAppName
   location: location
+  identity: {
+    type: 'SystemAssigned'
+  }
   properties: {
     managedEnvironmentId: containerAppsEnvironment.id
     configuration: {
@@ -222,6 +252,100 @@ resource monitorServiceApp 'Microsoft.App/containerApps@2024-03-01' = {
             {
               name: 'PORT'
               value: '8999'
+            }
+            {
+              name: 'KEY_VAULT_NAME'
+              value: keyVaultName
+            }
+            {
+              name: 'UPLOAD_SERVICE_URL'
+              value: 'https://${uploadServiceApp.properties.configuration.ingress.fqdn}'
+            }
+            {
+              name: 'INSIGHTS_SERVICE_URL'
+              value: 'https://${insightsServiceApp.properties.configuration.ingress.fqdn}'
+            }
+            {
+              name: 'INVESTMENT_SERVICE_URL'
+              value: 'https://${investmentServiceApp.properties.configuration.ingress.fqdn}'
+            }
+          ]
+        }
+      ]
+      scale: {
+        minReplicas: 0
+        maxReplicas: 5
+        rules: [
+          {
+            name: 'http-scaling'
+            http: {
+              metadata: {
+                concurrentRequests: '100'
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
+
+// Investment Service - External ingress (backend API)
+resource investmentServiceApp 'Microsoft.App/containerApps@2024-03-01' = {
+  name: investmentServiceAppName
+  location: location
+  identity: {
+    type: 'SystemAssigned'
+  }
+  properties: {
+    managedEnvironmentId: containerAppsEnvironment.id
+    configuration: {
+      secrets: [
+        {
+          name: 'docker-hub-password'
+          value: dockerHubPassword
+        }
+      ]
+      ingress: {
+        external: true
+        targetPort: 3004
+        transport: 'http'
+        allowInsecure: false
+        corsPolicy: {
+          allowedOrigins: ['*']
+          allowedMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+          allowedHeaders: ['*']
+        }
+      }
+      registries: [
+        {
+          server: 'docker.io'
+          username: dockerHubUsername
+          passwordSecretRef: 'docker-hub-password'
+        }
+      ]
+    }
+    template: {
+      containers: [
+        {
+          name: 'investment-service'
+          image: 'docker.io/${dockerHubUsername}/investment-service:${imageTag}'
+          resources: {
+            cpu: json('0.5')
+            memory: '1Gi'
+          }
+          env: [
+            {
+              name: 'NODE_ENV'
+              value: 'production'
+            }
+            {
+              name: 'PORT'
+              value: '3004'
+            }
+            {
+              name: 'KEY_VAULT_NAME'
+              value: keyVaultName
             }
           ]
         }
@@ -298,6 +422,10 @@ resource frontendApp 'Microsoft.App/containerApps@2024-03-01' = {
               name: 'REACT_APP_MONITOR_SERVICE_ENDPOINT'
               value: 'https://${monitorServiceApp.properties.configuration.ingress.fqdn}'
             }
+            {
+              name: 'REACT_APP_STOCK_SERVICE_URL'
+              value: 'https://${investmentServiceApp.properties.configuration.ingress.fqdn}'
+            }
           ]
         }
       ]
@@ -319,8 +447,16 @@ resource frontendApp 'Microsoft.App/containerApps@2024-03-01' = {
   }
 }
 
+// Outputs
 output environmentId string = containerAppsEnvironment.id
 output frontendUrl string = 'https://${frontendApp.properties.configuration.ingress.fqdn}'
 output uploadServiceFqdn string = uploadServiceApp.properties.configuration.ingress.fqdn
 output insightsServiceFqdn string = insightsServiceApp.properties.configuration.ingress.fqdn
 output monitorServiceFqdn string = monitorServiceApp.properties.configuration.ingress.fqdn
+output investmentServiceFqdn string = investmentServiceApp.properties.configuration.ingress.fqdn
+
+// Output principal IDs for role assignments
+output uploadServicePrincipalId string = uploadServiceApp.identity.principalId
+output insightsServicePrincipalId string = insightsServiceApp.identity.principalId
+output monitorServicePrincipalId string = monitorServiceApp.identity.principalId
+output investmentServicePrincipalId string = investmentServiceApp.identity.principalId

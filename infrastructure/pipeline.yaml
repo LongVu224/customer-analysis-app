@@ -17,6 +17,7 @@ variables:
   uploadServiceAppName: '$(projectBaseName)-upload'
   insightsServiceAppName: '$(projectBaseName)-insights'
   monitorServiceAppName: '$(projectBaseName)-monitor'
+  investmentServiceAppName: '$(projectBaseName)-investment'
   frontendAppName: '$(projectBaseName)-frontend'
   
   # Image tag - use Build.BuildId for versioning
@@ -110,10 +111,12 @@ stages:
                 UPLOAD_FQDN=$(cat deployment-outputs.json | jq -r '.uploadServiceFqdn.value')
                 INSIGHTS_FQDN=$(cat deployment-outputs.json | jq -r '.insightsServiceFqdn.value')
                 MONITOR_FQDN=$(cat deployment-outputs.json | jq -r '.monitorServiceFqdn.value')
+                INVESTMENT_FQDN=$(cat deployment-outputs.json | jq -r '.investmentServiceFqdn.value')
                 
                 echo "##vso[task.setvariable variable=uploadServiceFqdn;isOutput=true]$UPLOAD_FQDN"
                 echo "##vso[task.setvariable variable=insightsServiceFqdn;isOutput=true]$INSIGHTS_FQDN"
                 echo "##vso[task.setvariable variable=monitorServiceFqdn;isOutput=true]$MONITOR_FQDN"
+                echo "##vso[task.setvariable variable=investmentServiceFqdn;isOutput=true]$INVESTMENT_FQDN"
 
 # ============================================
 # Stage 3: Build and Push Docker Images
@@ -126,6 +129,7 @@ stages:
     uploadServiceFqdn: $[ stageDependencies.DeployInfra.DeployInfrastructure.outputs['DeployInfrastructure.DeployBicep.uploadServiceFqdn'] ]
     insightsServiceFqdn: $[ stageDependencies.DeployInfra.DeployInfrastructure.outputs['DeployInfrastructure.DeployBicep.insightsServiceFqdn'] ]
     monitorServiceFqdn: $[ stageDependencies.DeployInfra.DeployInfrastructure.outputs['DeployInfrastructure.DeployBicep.monitorServiceFqdn'] ]
+    investmentServiceFqdn: $[ stageDependencies.DeployInfra.DeployInfrastructure.outputs['DeployInfrastructure.DeployBicep.investmentServiceFqdn'] ]
   jobs:
   - job: BuildAndPushImages
     displayName: 'Build and Push All Images'
@@ -162,11 +166,19 @@ stages:
       displayName: 'Build and Push Monitor Service'
 
     - script: |
+        cd backend/investment-service
+        docker build -f .dockerfile -t $(dockerHubUsername)/investment-service:$(imageTag) -t $(dockerHubUsername)/investment-service:latest .
+        docker push $(dockerHubUsername)/investment-service:$(imageTag)
+        docker push $(dockerHubUsername)/investment-service:latest
+      displayName: 'Build and Push Investment Service'
+
+    - script: |
         cd frontend
         docker build -f .dockerfile \
           --build-arg REACT_APP_UPLOAD_SERVICE_ENDPOINT=https://$(uploadServiceFqdn) \
           --build-arg REACT_APP_INSIGHTS_SERVICE_ENDPOINT=https://$(insightsServiceFqdn) \
           --build-arg REACT_APP_MONITOR_SERVICE_ENDPOINT=https://$(monitorServiceFqdn) \
+          --build-arg REACT_APP_STOCK_SERVICE_URL=https://$(investmentServiceFqdn) \
           -t $(dockerHubUsername)/frontend:$(imageTag) \
           -t $(dockerHubUsername)/frontend:latest .
         docker push $(dockerHubUsername)/frontend:$(imageTag)
@@ -225,6 +237,18 @@ stages:
                   --name $(monitorServiceAppName) \
                   --resource-group $(resourceGroup) \
                   --image docker.io/$(dockerHubUsername)/monitor-service:$(imageTag)
+
+          - task: AzureCLI@2
+            displayName: 'Update Investment Service'
+            inputs:
+              azureSubscription: $(azureSubscription)
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                az containerapp update \
+                  --name $(investmentServiceAppName) \
+                  --resource-group $(resourceGroup) \
+                  --image docker.io/$(dockerHubUsername)/investment-service:$(imageTag)
 
           - task: AzureCLI@2
             displayName: 'Update Frontend'

@@ -18,6 +18,7 @@ param frontendAppName string = '${projectBaseName}-frontend'
 param uploadServiceAppName string = '${projectBaseName}-upload'
 param insightsServiceAppName string = '${projectBaseName}-insights'
 param monitorServiceAppName string = '${projectBaseName}-monitor'
+param investmentServiceAppName string = '${projectBaseName}-investment'
 
 // Image tag - override during deployment
 param imageTag string = 'latest'
@@ -55,10 +56,13 @@ module containerApps 'modular/container-apps.bicep' = {
     logAnalyticsWorkspaceId: monitoring.outputs.logAnalyticsWorkspaceId
     dockerHubUsername: dockerHubUsername
     dockerHubPassword: dockerHubPassword
+    keyVaultName: keyVaultName
+    storageAccountName: storageAccountName
     frontendAppName: frontendAppName
     uploadServiceAppName: uploadServiceAppName
     insightsServiceAppName: insightsServiceAppName
     monitorServiceAppName: monitorServiceAppName
+    investmentServiceAppName: investmentServiceAppName
     imageTag: imageTag
   }
 }
@@ -68,3 +72,10 @@ output frontendUrl string = containerApps.outputs.frontendUrl
 output uploadServiceFqdn string = containerApps.outputs.uploadServiceFqdn
 output insightsServiceFqdn string = containerApps.outputs.insightsServiceFqdn
 output monitorServiceFqdn string = containerApps.outputs.monitorServiceFqdn
+output investmentServiceFqdn string = containerApps.outputs.investmentServiceFqdn
+
+// Output principal IDs for RBAC assignments
+output uploadServicePrincipalId string = containerApps.outputs.uploadServicePrincipalId
+output insightsServicePrincipalId string = containerApps.outputs.insightsServicePrincipalId
+output monitorServicePrincipalId string = containerApps.outputs.monitorServicePrincipalId
+output investmentServicePrincipalId string = containerApps.outputs.investmentServicePrincipalId
