@@ -361,6 +361,7 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 1rem;
   padding: 1.25rem;
+  text-align: left;
   
   .section-title {
     display: flex;
@@ -473,7 +474,7 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.75rem 1rem;
+  padding: 0.75rem;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid transparent;
   border-radius: 0.75rem;
@@ -591,6 +592,7 @@
   border-radius: 1rem;
   padding: 1.5rem;
   min-height: 500px;
+  text-align: left;
 }
 
 // Loading States
@@ -685,8 +687,10 @@
     }
     
     .company-name {
+      display: block;
       color: rgba(255, 255, 255, 0.6);
       font-size: 0.95rem;
+      margin-top: 0.25rem;
     }
 
     .watchlist-toggle-btn {
