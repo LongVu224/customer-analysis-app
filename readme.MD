@@ -314,9 +314,6 @@ Create a `.env` file in each backend service directory:
 ```powershell
 # Required - Storage account name
 STORAGE_NAME=your_storage_account_name
-
-# Optional - If not provided, uses Azure Identity (recommended)
-# STORAGE_KEY=your_storage_account_key
 ```
 
 For local development, simply run:
@@ -338,7 +335,6 @@ UPLOAD_PASSWORD=your_secure_password
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `STORAGE_NAME` | Yes | Azure Storage Account name |
-| `STORAGE_KEY` | No | Azure Storage Account key (optional - uses Azure Identity if not set) |
 | `STORAGE_URL` | No | Override storage URL (defaults to `https://{STORAGE_NAME}.blob.core.windows.net`) |
 | `DB_CONNECTION_STRING` | Yes | MongoDB connection string |
 | `UPLOAD_PASSWORD` | No | Password for upload protection (if empty, uploads are unrestricted) |
@@ -352,7 +348,6 @@ DB_CONNECTION_STRING=mongodb://localhost:27017/customer-analysis
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `STORAGE_NAME` | Yes | Azure Storage Account name |
-| `STORAGE_KEY` | No | Azure Storage Account key (optional - uses Azure Identity if not set) |
 | `DB_CONNECTION_STRING` | Yes | MongoDB connection string |
 
 #### Investment Service (`backend/investment-service/.env`)

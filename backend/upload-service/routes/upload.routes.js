@@ -35,17 +35,9 @@ const checkPassword = (req, res, next) => {
   next();
 };
 
-// Create BlobServiceClient using DefaultAzureCredential or connection string
-let blobServiceClient;
-if (config.storageKey) {
-  // Use connection string with storage key (legacy/fallback)
-  const connectionString = `DefaultEndpointsProtocol=https;AccountName=${config.storageName};AccountKey=${config.storageKey};EndpointSuffix=core.windows.net`;
-  blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
-} else {
-  // Use DefaultAzureCredential (managed identity in prod, Azure CLI locally)
-  const credential = new DefaultAzureCredential();
-  blobServiceClient = new BlobServiceClient(config.storageUrl, credential);
-}
+// Create BlobServiceClient using DefaultAzureCredential (managed identity in prod, Azure CLI locally)
+const credential = new DefaultAzureCredential();
+const blobServiceClient = new BlobServiceClient(config.storageUrl, credential);
 const containerClient = blobServiceClient.getContainerClient('sales');
 
 // Custom Multer storage engine for Azure Blob Storage with identity-based auth
