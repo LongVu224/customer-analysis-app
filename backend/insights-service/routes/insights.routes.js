@@ -2,6 +2,7 @@ const express = require('express'),
   mongoose = require('mongoose'),
   zmq = require('zeromq'),
   { BlobServiceClient } = require('@azure/storage-blob'),
+  { DefaultAzureCredential } = require('@azure/identity'),
   csv = require('csv-parser'),
   insightsApi = express.Router();
 
@@ -13,8 +14,18 @@ const { saveProcessLog } = require('../models/ProcessLog');
 // env configuration
 const config = require("../config/config");
 
-const connectionString = `DefaultEndpointsProtocol=https;AccountName=${config.storageName};AccountKey=${config.storageKey};EndpointSuffix=core.windows.net`;
-const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
+// Create BlobServiceClient using DefaultAzureCredential (supports managed identity and local Azure CLI)
+// Falls back to connection string if storage key is provided
+let blobServiceClient;
+if (config.storageKey) {
+  // Use connection string with storage key (legacy/fallback)
+  const connectionString = `DefaultEndpointsProtocol=https;AccountName=${config.storageName};AccountKey=${config.storageKey};EndpointSuffix=core.windows.net`;
+  blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
+} else {
+  // Use DefaultAzureCredential (managed identity in prod, Azure CLI locally)
+  const credential = new DefaultAzureCredential();
+  blobServiceClient = new BlobServiceClient(config.storageUrl, credential);
+}
 const containerClient = blobServiceClient.getContainerClient('sales');
 
 async function processBlobFile(blobName) {

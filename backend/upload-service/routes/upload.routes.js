@@ -4,7 +4,8 @@ const express = require('express'),
   mongoose = require('mongoose'),
   zmq = require('zeromq'),
   { v4: uuidV4 } = require('uuid'),
-  { MulterAzureStorage  } = require('multer-azure-blob-storage'),
+  { BlobServiceClient } = require('@azure/storage-blob'),
+  { DefaultAzureCredential } = require('@azure/identity'),
   router = express.Router();
 
 // file model
@@ -34,22 +35,63 @@ const checkPassword = (req, res, next) => {
   next();
 };
 
-const resolveBlobName = (req, file) => {
-  return new Promise((resolve, reject) => {
+// Create BlobServiceClient using DefaultAzureCredential or connection string
+let blobServiceClient;
+if (config.storageKey) {
+  // Use connection string with storage key (legacy/fallback)
+  const connectionString = `DefaultEndpointsProtocol=https;AccountName=${config.storageName};AccountKey=${config.storageKey};EndpointSuffix=core.windows.net`;
+  blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
+} else {
+  // Use DefaultAzureCredential (managed identity in prod, Azure CLI locally)
+  const credential = new DefaultAzureCredential();
+  blobServiceClient = new BlobServiceClient(config.storageUrl, credential);
+}
+const containerClient = blobServiceClient.getContainerClient('sales');
+
+// Custom Multer storage engine for Azure Blob Storage with identity-based auth
+class AzureBlobStorage {
+  constructor(options) {
+    this.containerClient = options.containerClient;
+  }
+
+  _handleFile(req, file, cb) {
     const fileName = file.originalname.toLowerCase().split(' ').join('-');
     const blobName = uuidV4() + '-' + fileName;
-    resolve(blobName);
-  });
-};
+    const blockBlobClient = this.containerClient.getBlockBlobClient(blobName);
 
-const resolveMetadata = (req, file) => {
-  return new Promise((resolve, reject) => {
-    const metadata = {fieldName: file.fieldname};
-    resolve(metadata);
-  });
-};
+    // Collect file data into buffer
+    const chunks = [];
+    file.stream.on('data', (chunk) => chunks.push(chunk));
+    file.stream.on('end', async () => {
+      try {
+        const buffer = Buffer.concat(chunks);
+        await blockBlobClient.uploadData(buffer, {
+          blobHTTPHeaders: {
+            blobContentType: file.mimetype
+          },
+          metadata: {
+            fieldName: file.fieldname
+          }
+        });
+        cb(null, {
+          blobName: blobName,
+          url: blockBlobClient.url,
+          size: buffer.length
+        });
+      } catch (error) {
+        cb(error);
+      }
+    });
+    file.stream.on('error', (err) => cb(err));
+  }
 
-const connectionString = `DefaultEndpointsProtocol=https;AccountName=${config.storageName};AccountKey=${config.storageKey};EndpointSuffix=core.windows.net`;
+  _removeFile(req, file, cb) {
+    const blockBlobClient = this.containerClient.getBlockBlobClient(file.blobName);
+    blockBlobClient.delete()
+      .then(() => cb(null))
+      .catch((err) => cb(err));
+  }
+}
 
 let upload;
 
@@ -57,13 +99,8 @@ let upload;
 if (process.env.NODE_ENV === 'test') {
   upload = multer({ storage: multer.memoryStorage() });
 } else {
-  const azureStorage = new MulterAzureStorage({
-    connectionString: connectionString,
-    accessKey: config.storageKey,
-    accountName: config.storageName,
-    containerName: 'sales',
-    blobName: resolveBlobName,
-    metadata: resolveMetadata,
+  const azureStorage = new AzureBlobStorage({
+    containerClient: containerClient
   });
 
   // middleware for uploading files

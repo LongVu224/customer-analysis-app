@@ -40,10 +40,10 @@ Finance Analysis App enables businesses to upload, manage, and analyze finance d
 │  │  https://<app>-frontend.<id>.azurecontainerapps.io          ││
 │  └─────────────────────────────────────────────────────────────┘│
 │                              │                                  │
-│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐                │
-│  │ Upload Svc  │ │ Insights Svc│ │ Monitor Svc │                │
-│  │ :8000       │ │ :9000       │ │ :8999       │                │
-│  └─────────────┘ └─────────────┘ └─────────────┘                │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐│
+│  │ Upload Svc  │ │ Insights Svc│ │ Monitor Svc │ │Investment Svc││
+│  │ :8000       │ │ :9000       │ │ :8999       │ │ :3004       ││
+│  └─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘│
 │                                                                 │
 │  Docker Hub (docker.io/longvu224/*) ← Stores Docker images      │
 └─────────────────────────────────────────────────────────────────┘
@@ -57,9 +57,9 @@ Finance Analysis App enables businesses to upload, manage, and analyze finance d
 
 **Components:**
 - **Frontend:** React SPA served via Container App
-- **Backend:** 3 Node.js microservices (upload, insights, monitor)
+- **Backend:** 4 Node.js microservices (upload, insights, monitor, investment)
 - **Database:** MongoDB
-- **Storage:** Azure Storage Account
+- **Storage:** Azure Storage Account (using Azure Identity for authentication)
 - **Registry:** Docker Hub (free tier)
 - **Monitoring:** Azure Application Insights + Log Analytics
 - **Secrets:** Azure Key Vault
@@ -77,22 +77,34 @@ Finance Analysis App enables businesses to upload, manage, and analyze finance d
 ### API Endpoints
 
 | Method | Endpoint                              | Description                              | Auth Required |
-|--------|---------------------------------------|------------------------------------------|--------------|
-| POST   | `/upload`                             | Upload sale data                         | Password     |
-| GET    | `/upload`                             | List all sale records                    | No           |
-| GET    | `/upload/:id`                         | Load a sale record                       | No           |
-| GET    | `/insights`                           | Get all data insights                    | No           |
-| GET    | `/insights/:salesId`                  | Get data insights for a sale record      | No           |
-| GET    | `/monitor`                            | Get all process logs                     | No           |
-| GET    | `/monitor/service/:serviceName`       | Get all process logs for a service       | No           |
+|--------|---------------------------------------|------------------------------------------|---------------|
+| POST   | `/upload`                             | Upload sale data                         | Password      |
+| GET    | `/upload`                             | List all sale records                    | No            |
+| GET    | `/upload/:id`                         | Load a sale record                       | No            |
+| GET    | `/insights`                           | Get all data insights                    | No            |
+| GET    | `/insights/:salesId`                  | Get data insights for a sale record      | No            |
+| GET    | `/monitor`                            | Get all process logs                     | No            |
+| GET    | `/monitor/service/:serviceName`       | Get all process logs for a service       | No            |
+| GET    | `/monitor/health`                     | Get health status of all services        | No            |
+| GET    | `/stocks/trending`                    | Get trending stocks                      | No            |
+| GET    | `/stocks/quote/:symbol`               | Get stock quote                          | No            |
+| GET    | `/stocks/analysis/:symbol`            | Get stock analysis with indicators       | No            |
+| GET    | `/stocks/market/:marketId`            | Get stocks for a market (us/finland)     | No            |
+| GET    | `/stocks/watchlist`                   | Get user's watchlist                     | No            |
+| POST   | `/stocks/watchlist/:symbol`           | Add stock to watchlist                   | No            |
+| DELETE | `/stocks/watchlist/:symbol`           | Remove stock from watchlist              | No            |
+| GET    | `/stocks/search/:query`               | Search for stocks                        | No            |
 
 
 
 ### Database
 
-- Sales collection: stores sale records.
-- Insights collection: stores data insights.
-- ProcessLogs collection: stores system logs.
+- **Sales** collection: stores sale records
+- **Insights** collection: stores data insights
+- **ProcessLogs** collection: stores system logs
+- **Watchlist** collection: stores user's stock watchlist
+- **StockData** collection: caches stock data
+- **MarketCustomSymbols** collection: stores custom market symbols
 
 ### Setup & Run (Backend)
 
@@ -120,16 +132,23 @@ node app.js
 ### Technologies Used
 
 - React (with hooks)
-- Redux (or Context API)
+- SCSS for styling
 - Axios for API calls
-- Material UI (or Bootstrap) for UI components
+- Recharts for data visualization
 
 ### Features
 
-- User authentication (login/register)
 - Sale data upload and management
 - Data visualization (charts, tables)
-- Insights dashboard
+- Insights dashboard with analytics
+- **Investment Dashboard:**
+  - Real-time stock quotes (US & Helsinki markets)
+  - Stock analysis with technical indicators (RSI, SMA)
+  - Investment suggestions based on technical analysis
+  - Watchlist management
+  - Price trend charts (60 days)
+- System monitoring dashboard
+- Service health checks
 
 ### Setup & Run (Frontend)
 
@@ -156,7 +175,7 @@ Infrastructure is managed as code using **Azure Bicep** templates.
 | Module | Description |
 |--------|-------------|
 | `main.bicep` | Main orchestration template |
-| `container-apps.bicep` | Container Apps Environment + 4 apps |
+| `container-apps.bicep` | Container Apps Environment + 5 apps |
 | `storage-account.bicep` | Azure Storage Account |
 | `key-vault.bicep` | Azure Key Vault |
 | `monitoring.bicep` | App Insights + Log Analytics |
@@ -169,7 +188,8 @@ sale-analysis-rg/
 │   ├── sale-analysis-frontend   (Frontend Container App)
 │   ├── sale-analysis-upload     (Upload Service)
 │   ├── sale-analysis-insights   (Insights Service)
-│   └── sale-analysis-monitor    (Monitor Service)
+│   ├── sale-analysis-monitor    (Monitor Service)
+│   └── sale-analysis-investment (Investment Service)
 ├── sale-analysis-ai         (Application Insights)
 ├── sale-analysis-law        (Log Analytics Workspace)
 ├── saleanalysisstorage      (Storage Account)
@@ -180,6 +200,7 @@ Docker Hub (external):
     ├── upload-service
     ├── insights-service
     ├── monitor-service
+    ├── investment-service
     └── frontend
 ```
 
@@ -238,6 +259,7 @@ docker login -u longvu224
 cd backend\upload-service; docker build -f .dockerfile -t longvu224/upload-service:latest .; docker push longvu224/upload-service:latest; cd ..\..  
 cd backend\insights-service; docker build -f .dockerfile -t longvu224/insights-service:latest .; docker push longvu224/insights-service:latest; cd ..\..
 cd backend\monitor-service; docker build -f .dockerfile -t longvu224/monitor-service:latest .; docker push longvu224/monitor-service:latest; cd ..\..
+cd backend\investment-service; docker build -f .dockerfile -t longvu224/investment-service:latest .; docker push longvu224/investment-service:latest; cd ..\..
 cd frontend; docker build -f .dockerfile -t longvu224/frontend:latest .; docker push longvu224/frontend:latest; cd ..
 
 # Update Container Apps to use new images
@@ -245,6 +267,8 @@ az containerapp update --name sale-analysis-frontend --resource-group sale-analy
 az containerapp update --name sale-analysis-upload --resource-group sale-analysis-rg --image "docker.io/longvu224/upload-service:latest"
 az containerapp update --name sale-analysis-insights --resource-group sale-analysis-rg --image "docker.io/longvu224/insights-service:latest"
 az containerapp update --name sale-analysis-monitor --resource-group sale-analysis-rg --image "docker.io/longvu224/monitor-service:latest"
+az containerapp update --name sale-analysis-investment --resource-group sale-analysis-rg --image "docker.io/longvu224/investment-service:latest"
+```
 
 ### Local Development with Docker
 
@@ -277,20 +301,36 @@ docker-compose down -v
 | Upload Service | http://localhost:8000 |
 | Insights Service | http://localhost:9000 |
 | Monitor Service | http://localhost:8999 |
+| Investment Service | http://localhost:3004 |
 | MongoDB | mongodb://localhost:27017 |
 
-**Optional:** Create a `.env` file in the project root for Azure Storage (if needed):
+**Azure Storage Configuration:**
+
+The application uses **Azure Identity** (`DefaultAzureCredential`) for storage authentication, which automatically works with:
+- **Local development**: Your Azure CLI credentials (`az login`)
+- **Production (Azure)**: The Container App's managed identity
+
+Create a `.env` file in each backend service directory:
 ```powershell
+# Required - Storage account name
 STORAGE_NAME=your_storage_account_name
-STORAGE_KEY=your_storage_account_key
+
+# Optional - If not provided, uses Azure Identity (recommended)
+# STORAGE_KEY=your_storage_account_key
 ```
+
+For local development, simply run:
+```powershell
+az login  # Sign in with your Azure account
+```
+
+For production, assign the **"Storage Blob Data Contributor"** role to your Container App's managed identity on the storage account.
 
 ### Environment Variables
 
 #### Upload Service (`backend/upload-service/.env`)
 ```
 STORAGE_NAME=your_storage_account_name
-STORAGE_KEY=your_storage_account_key
 DB_CONNECTION_STRING=mongodb://localhost:27017/customer-analysis
 UPLOAD_PASSWORD=your_secure_password
 ```
@@ -298,9 +338,48 @@ UPLOAD_PASSWORD=your_secure_password
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `STORAGE_NAME` | Yes | Azure Storage Account name |
-| `STORAGE_KEY` | Yes | Azure Storage Account key |
+| `STORAGE_KEY` | No | Azure Storage Account key (optional - uses Azure Identity if not set) |
+| `STORAGE_URL` | No | Override storage URL (defaults to `https://{STORAGE_NAME}.blob.core.windows.net`) |
 | `DB_CONNECTION_STRING` | Yes | MongoDB connection string |
 | `UPLOAD_PASSWORD` | No | Password for upload protection (if empty, uploads are unrestricted) |
+
+#### Insights Service (`backend/insights-service/.env`)
+```
+STORAGE_NAME=your_storage_account_name
+DB_CONNECTION_STRING=mongodb://localhost:27017/customer-analysis
+```
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `STORAGE_NAME` | Yes | Azure Storage Account name |
+| `STORAGE_KEY` | No | Azure Storage Account key (optional - uses Azure Identity if not set) |
+| `DB_CONNECTION_STRING` | Yes | MongoDB connection string |
+
+#### Investment Service (`backend/investment-service/.env`)
+```
+DB_CONNECTION_STRING=mongodb://localhost:27017/customer-analysis
+```
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `DB_CONNECTION_STRING` | Yes | MongoDB connection string |
+| `CACHE_TTL` | No | Cache time-to-live in seconds (default: 900) |
+
+#### Monitor Service (`backend/monitor-service/.env`)
+```
+DB_CONNECTION_STRING=mongodb://localhost:27017/customer-analysis
+UPLOAD_SERVICE_URL=http://localhost:8000
+INSIGHTS_SERVICE_URL=http://localhost:9000
+INVESTMENT_SERVICE_URL=http://localhost:3004
+```
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `DB_CONNECTION_STRING` | Yes | MongoDB connection string |
+| `UPLOAD_SERVICE_URL` | No | Internal URL for upload service health checks |
+| `INSIGHTS_SERVICE_URL` | No | Internal URL for insights service health checks |
+| `INVESTMENT_SERVICE_URL` | No | Internal URL for investment service health checks |
+| `*_DISPLAY_URL` | No | External URLs shown in UI (for production) |
 
 ---
 
