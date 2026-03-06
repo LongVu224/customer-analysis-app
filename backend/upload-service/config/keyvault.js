@@ -2,16 +2,30 @@ const { DefaultAzureCredential } = require("@azure/identity");
 const { SecretClient } = require("@azure/keyvault-secrets");
 
 /**
- * Fetches secrets from Azure Key Vault using DefaultAzureCredential.
- * In local development, this uses Azure CLI credentials.
- * In production (Azure), this uses Managed Identity.
+ * Gets secrets from environment variables (local dev) or Azure Key Vault (production).
  * 
- * @param {string} keyVaultName - The name of the Key Vault (e.g., 'cabbage-app-kv')
+ * Local development: Set DB_CONNECTION_STRING and UPLOAD_PASSWORD in .env
+ * Production (Azure): Set KEY_VAULT_NAME, uses Managed Identity automatically
+ * 
+ * @param {string} keyVaultName - The name of the Key Vault (optional for local dev)
  * @returns {Promise<{dbConnectionString: string, uploadPassword: string}>}
  */
 async function getSecrets(keyVaultName) {
+  // Check for environment variables first (local development)
+  const envDbConnectionString = process.env.DB_CONNECTION_STRING;
+  const envUploadPassword = process.env.UPLOAD_PASSWORD;
+
+  if (envDbConnectionString && envUploadPassword) {
+    console.log("✓ Using secrets from environment variables (local development)");
+    return {
+      dbConnectionString: envDbConnectionString,
+      uploadPassword: envUploadPassword
+    };
+  }
+
+  // Fall back to Key Vault (production)
   if (!keyVaultName) {
-    throw new Error("KEY_VAULT_NAME environment variable is required");
+    throw new Error("Either set DB_CONNECTION_STRING/UPLOAD_PASSWORD env vars (local) or KEY_VAULT_NAME (production)");
   }
 
   const keyVaultUrl = `https://${keyVaultName}.vault.azure.net`;
