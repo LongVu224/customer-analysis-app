@@ -310,9 +310,16 @@ The application uses **Azure Identity** (`DefaultAzureCredential`) for storage a
 - **Local development**: Your Azure CLI credentials (`az login`)
 - **Production (Azure)**: The Container App's managed identity
 
+**Azure Key Vault Configuration:**
+
+All sensitive secrets (database connection string, upload password) are stored in **Azure Key Vault** and fetched at application startup using `DefaultAzureCredential`.
+
 Create a `.env` file in each backend service directory:
 ```powershell
-# Required - Storage account name
+# Required - Key Vault name for secrets
+KEY_VAULT_NAME=your_keyvault_name
+
+# Required - Storage account name (for services that use storage)
 STORAGE_NAME=your_storage_account_name
 ```
 
@@ -321,48 +328,54 @@ For local development, simply run:
 az login  # Sign in with your Azure account
 ```
 
-For production, assign the **"Storage Blob Data Contributor"** role to your Container App's managed identity on the storage account.
+**Key Vault Secrets Required:**
+| Secret Name | Description |
+|-------------|-------------|
+| `db-connection-string` | MongoDB connection string |
+| `upload-password` | Password for upload protection |
+
+For production, assign these roles to your Container App's managed identity:
+- **"Key Vault Secrets User"** role on the Key Vault
+- **"Storage Blob Data Contributor"** role on the Storage Account
 
 ### Environment Variables
 
 #### Upload Service (`backend/upload-service/.env`)
 ```
+KEY_VAULT_NAME=your_keyvault_name
 STORAGE_NAME=your_storage_account_name
-DB_CONNECTION_STRING=mongodb://localhost:27017/customer-analysis
-UPLOAD_PASSWORD=your_secure_password
 ```
 
 | Variable | Required | Description |
 |----------|----------|-------------|
+| `KEY_VAULT_NAME` | Yes | Azure Key Vault name for fetching secrets |
 | `STORAGE_NAME` | Yes | Azure Storage Account name |
 | `STORAGE_URL` | No | Override storage URL (defaults to `https://{STORAGE_NAME}.blob.core.windows.net`) |
-| `DB_CONNECTION_STRING` | Yes | MongoDB connection string |
-| `UPLOAD_PASSWORD` | No | Password for upload protection (if empty, uploads are unrestricted) |
 
 #### Insights Service (`backend/insights-service/.env`)
 ```
+KEY_VAULT_NAME=your_keyvault_name
 STORAGE_NAME=your_storage_account_name
-DB_CONNECTION_STRING=mongodb://localhost:27017/customer-analysis
 ```
 
 | Variable | Required | Description |
 |----------|----------|-------------|
+| `KEY_VAULT_NAME` | Yes | Azure Key Vault name for fetching secrets |
 | `STORAGE_NAME` | Yes | Azure Storage Account name |
-| `DB_CONNECTION_STRING` | Yes | MongoDB connection string |
 
 #### Investment Service (`backend/investment-service/.env`)
 ```
-DB_CONNECTION_STRING=mongodb://localhost:27017/customer-analysis
+KEY_VAULT_NAME=your_keyvault_name
 ```
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `DB_CONNECTION_STRING` | Yes | MongoDB connection string |
+| `KEY_VAULT_NAME` | Yes | Azure Key Vault name for fetching secrets |
 | `CACHE_TTL` | No | Cache time-to-live in seconds (default: 900) |
 
 #### Monitor Service (`backend/monitor-service/.env`)
 ```
-DB_CONNECTION_STRING=mongodb://localhost:27017/customer-analysis
+KEY_VAULT_NAME=your_keyvault_name
 UPLOAD_SERVICE_URL=http://localhost:8000
 INSIGHTS_SERVICE_URL=http://localhost:9000
 INVESTMENT_SERVICE_URL=http://localhost:3004
@@ -370,7 +383,7 @@ INVESTMENT_SERVICE_URL=http://localhost:3004
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `DB_CONNECTION_STRING` | Yes | MongoDB connection string |
+| `KEY_VAULT_NAME` | Yes | Azure Key Vault name for fetching secrets |
 | `UPLOAD_SERVICE_URL` | No | Internal URL for upload service health checks |
 | `INSIGHTS_SERVICE_URL` | No | Internal URL for insights service health checks |
 | `INVESTMENT_SERVICE_URL` | No | Internal URL for investment service health checks |

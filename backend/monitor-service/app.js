@@ -6,18 +6,7 @@ let express = require('express'),
 
 const monitorApi = require('./routes/monitor.routes')
 const config = require("./config/config");
-
-// MongoDB Configuration
-mongoose.Promise = global.Promise;
-mongoose.connect(config.dbConnectionString, {
-  useNewUrlParser: true
-}).then(() => 
-{
-  console.log('Database sucessfully connected')
-},
-error => {
-  console.log('Database could not be connected: ' + error)
-})
+const { getSecrets } = require("./config/keyvault");
 
 const app = express();
 app.use(bodyParser.json());
@@ -42,7 +31,28 @@ app.use((err, req, res, next) => {
   res.status(err.status || 500).send(err.message);
 });
 
-const port = process.env.PORT || 4000;
-const server = app.listen(port, () => {
-  console.log('Connected to port ' + port)
-})
+// Async startup: fetch secrets from Key Vault, then connect to MongoDB
+async function startServer() {
+  try {
+    // Fetch secrets from Azure Key Vault
+    const secrets = await getSecrets(config.keyVaultName);
+    config.dbConnectionString = secrets.dbConnectionString;
+
+    // MongoDB Configuration
+    mongoose.Promise = global.Promise;
+    await mongoose.connect(config.dbConnectionString, {
+      useNewUrlParser: true
+    });
+    console.log('✓ Database successfully connected');
+
+    const port = process.env.PORT || 4000;
+    app.listen(port, () => {
+      console.log(`✓ Monitor service running on port ${port}`);
+    });
+  } catch (error) {
+    console.error('✗ Failed to start server:', error.message);
+    process.exit(1);
+  }
+}
+
+startServer();

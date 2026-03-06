@@ -1,6 +1,9 @@
 module.exports = {
-  // MongoDB connection
-  mongoURI: process.env.MONGO_URI || 'mongodb://localhost:27017/stockdb',
+  // Key Vault name for fetching secrets
+  keyVaultName: process.env.KEY_VAULT_NAME || '',
+  
+  // MongoDB connection (will be populated from Key Vault at runtime)
+  mongoURI: '',
   
   // Server port
   port: process.env.PORT || 3004,
