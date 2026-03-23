@@ -263,6 +263,25 @@ stages:
                   --image docker.io/$(dockerHubUsername)/frontend:$(imageTag)
 
           - task: AzureCLI@2
+            displayName: 'Restart Frontend app
+            inputs:
+              azureSubscription: $(azureSubscription)
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                # Get the latest revision name
+                REVISION=$(az containerapp revision list \
+                  --name $(frontendAppName) \
+                  --resource-group $(resourceGroup) \
+                  --query "[0].name" -o tsv)
+                
+                # Restart the revision to pick up latest env variables
+                az containerapp revision restart \
+                  --name $(frontendAppName) \
+                  --resource-group $(resourceGroup) \
+                  --revision $REVISION
+
+          - task: AzureCLI@2
             displayName: 'Show Deployment URLs'
             inputs:
               azureSubscription: $(azureSubscription)
