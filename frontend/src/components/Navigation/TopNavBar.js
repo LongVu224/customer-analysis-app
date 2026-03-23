@@ -9,10 +9,16 @@ const NavBar = styled.nav`
   left: 0;
   right: 0;
   height: 64px;
-  background: rgba(15, 23, 42, 0.95);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(
+    135deg,
+    rgba(26, 26, 46, 0.7) 0%,
+    rgba(22, 33, 62, 0.6) 50%,
+    rgba(15, 52, 96, 0.5) 100%
+  );
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.15);
   z-index: 1000;
   display: flex;
   align-items: center;
@@ -37,7 +43,10 @@ const Logo = styled(RouterNavLink)`
     align-items: center;
     justify-content: center;
     background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-    border-radius: 8px;
+    border-radius: 10px;
+    box-shadow: 
+      0 4px 15px rgba(99, 102, 241, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
     
     svg {
       color: white;
@@ -50,6 +59,7 @@ const Logo = styled(RouterNavLink)`
     font-weight: 700;
     color: white;
     letter-spacing: -0.02em;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     
     @media (max-width: 576px) {
       display: none;
@@ -76,8 +86,9 @@ const NavLinkStyled = styled(RouterNavLink)`
   font-weight: 500;
   color: rgba(255, 255, 255, 0.7);
   text-decoration: none;
-  border-radius: 8px;
-  transition: all 0.2s ease;
+  border-radius: 10px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid transparent;
   
   svg {
     font-size: 1.1rem;
@@ -86,14 +97,24 @@ const NavLinkStyled = styled(RouterNavLink)`
   &:hover {
     color: white;
     background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   }
   
   &.active {
     color: white;
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
+    background: linear-gradient(
+      135deg,
+      rgba(99, 102, 241, 0.25) 0%,
+      rgba(139, 92, 246, 0.15) 100%
+    );
+    border-color: rgba(99, 102, 241, 0.3);
+    box-shadow: 
+      0 4px 15px rgba(99, 102, 241, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
     
     svg {
-      color: #818cf8;
+      color: #a5b4fc;
     }
   }
   
