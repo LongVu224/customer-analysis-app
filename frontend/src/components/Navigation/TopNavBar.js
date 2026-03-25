@@ -1,7 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import { NavLink as RouterNavLink } from "react-router-dom";
-import { FiUploadCloud, FiBarChart2, FiActivity, FiTrendingUp } from "react-icons/fi";
+import { FiUploadCloud, FiBarChart2, FiActivity, FiTrendingUp, FiUser } from "react-icons/fi";
 
 const NavBar = styled.nav`
   position: fixed;
@@ -156,6 +156,11 @@ const TopNavBar = () => {
         <NavLinkStyled to="/Monitor">
           <FiActivity />
           <span className="nav-text">Monitor</span>
+        </NavLinkStyled>
+        
+        <NavLinkStyled to="/Portfolio">
+          <FiUser />
+          <span className="nav-text">Portfolio</span>
         </NavLinkStyled>
       </NavLinks>
     </NavBar>

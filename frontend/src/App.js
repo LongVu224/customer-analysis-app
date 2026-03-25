@@ -6,6 +6,7 @@ import Home from './routes/Home';
 import Insights from './routes/Insights';
 import Monitor from './routes/Monitor';
 import Stocks from './routes/Stocks';
+import Portfolio from './routes/Portfolio';
 import './App.css';
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
         <Route path="/Investment" element={<Stocks />} />
         <Route path="/Monitor" element={<Monitor />} />
         <Route path="/Upload" element={<Home />} />
+        <Route path="/Portfolio" element={<Portfolio />} />
       </Routes>
     </div>
   );

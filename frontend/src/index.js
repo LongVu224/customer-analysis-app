@@ -33,6 +33,7 @@ const app = (
             <Route path="/Investment" element={ <App /> }></Route>
             <Route path="/Monitor" element={ <App /> }></Route>
             <Route path="/Upload" element={ <App /> }></Route>
+            <Route path="/Portfolio" element={ <App /> }></Route>
             </Route>
         </Routes>
         </BrowserRouter>
