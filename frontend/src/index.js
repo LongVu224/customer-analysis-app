@@ -5,7 +5,6 @@ import {BrowserRouter, Routes, Route} from 'react-router-dom';
 import {Provider} from 'react-redux';
 import {legacy_createStore as createStore, applyMiddleware, compose, combineReducers} from 'redux';
 import {thunk} from 'redux-thunk';
-import history from './components/helper/History/history';
 import App from './App';
 import homeReducer from './routes/Home/Home.reducer';
 import insightsReducer from './routes/Insights/Insights.reducer';
@@ -27,7 +26,7 @@ const store = createStore(RootReducer, composeEnhancers(
 
 const app = (
     <Provider store={store}>
-        <BrowserRouter history={history}>
+        <BrowserRouter>
           <Routes>
             <Route path="/" element={ <App /> }>
             <Route path="/Investment" element={ <App /> }></Route>

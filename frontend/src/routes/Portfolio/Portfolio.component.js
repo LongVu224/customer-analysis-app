@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   FiMail, FiGithub, FiLinkedin, FiMapPin,
   FiCode, FiDatabase, FiCloud, FiLayers, FiServer,
@@ -469,7 +469,7 @@ const CodeTerminal = () => {
   const [currentCharIndex, setCurrentCharIndex] = useState(0);
   const [isTyping, setIsTyping] = useState(true);
 
-  const codeLines = [
+  const codeLines = useMemo(() => [
     { type: 'comment', text: '// Azure DevOps Engineer Portfolio' },
     { type: 'code', text: 'const engineer = {' },
     { type: 'property', text: '  name: "Long Vu",' },
@@ -481,7 +481,7 @@ const CodeTerminal = () => {
     { type: 'code', text: 'az pipeline run --name "deploy"' },
     { type: 'output', text: '→ Pipeline triggered...' },
     { type: 'success', text: '✓ Deployment successful!' },
-  ];
+  ], []);
 
   useEffect(() => {
     if (!isTyping) return;

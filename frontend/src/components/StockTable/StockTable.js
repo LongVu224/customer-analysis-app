@@ -7,7 +7,6 @@ const API_BASE = process.env.REACT_APP_STOCK_SERVICE_URL || 'http://localhost:30
 // Helper function to get suggestion based on stock performance
 const getSuggestion = (stock) => {
   const changePercent = stock.changePercent || 0;
-  const priceVsHigh = stock.high ? (stock.currentPrice / stock.high) : 1;
   
   if (changePercent >= 3) return { text: 'Strong Buy', type: 'strong-buy' };
   if (changePercent >= 1) return { text: 'Buy', type: 'buy' };
@@ -79,6 +78,7 @@ const StockTable = ({
       searchStocksToAdd(addStockQuery);
     }, 300);
     return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [addStockQuery]);
 
   // Format last updated time

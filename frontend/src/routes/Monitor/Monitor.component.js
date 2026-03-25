@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react"
-import { FiActivity, FiServer, FiAlertCircle, FiCheckCircle, FiClock, FiRefreshCw, FiSearch, FiX, FiChevronLeft, FiChevronRight, FiFilter, FiCalendar } from "react-icons/fi"
+import { FiActivity, FiServer, FiAlertCircle, FiCheckCircle, FiClock, FiRefreshCw, FiSearch, FiX, FiChevronLeft, FiChevronRight, FiCalendar } from "react-icons/fi"
 import { Spinner } from '../../components/Spinner'
 import BarChart from '../../components/Charts/BarChart/bar'
 import CustomSelect from '../../components/CustomSelect'
@@ -118,6 +118,7 @@ const Monitor = () => {
     if (viewMode === 'logs') {
       fetchLogs(1);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [viewMode, selectedService, selectedType]);
 
   // Debounced search
@@ -128,7 +129,8 @@ const Monitor = () => {
       }, 300);
       return () => clearTimeout(timer);
     }
-  }, [searchQuery]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery, viewMode]);
 
   // Get status color and icon
   const getStatusInfo = (status) => {

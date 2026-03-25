@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-import { FiTrendingUp, FiTrendingDown, FiSearch, FiPlus, FiX, FiRefreshCw, FiDollarSign, FiActivity, FiBarChart2, FiGrid, FiList, FiTable, FiStar, FiInfo } from "react-icons/fi";
+import { FiTrendingUp, FiTrendingDown, FiSearch, FiPlus, FiX, FiRefreshCw, FiDollarSign, FiActivity, FiBarChart2, FiList, FiTable, FiStar, FiInfo } from "react-icons/fi";
 import { HiOutlineChartBar, HiOutlineSparkles, HiOutlineLightBulb, HiOutlineGlobeAlt } from "react-icons/hi2";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import StockTable from '../../components/StockTable';
 import './Stocks.scss';
 
@@ -34,7 +34,6 @@ const Stocks = () => {
   const [watchlist, setWatchlist] = useState([]);
   const [loading, setLoading] = useState(true);
   const [analysisLoading, setAnalysisLoading] = useState(false);
-  const [error, setError] = useState(null);
 
   // Fetch US market stocks
   const fetchUsStocks = useCallback(async () => {
@@ -116,8 +115,7 @@ const Stocks = () => {
         setTrendingStocks(data.data);
       }
     } catch (err) {
-      setError('Failed to fetch trending stocks');
-      console.error(err);
+      console.error('Failed to fetch trending stocks:', err);
     } finally {
       setLoading(false);
     }
@@ -146,11 +144,10 @@ const Stocks = () => {
       if (data.success) {
         setStockAnalysis(data.data);
       } else {
-        setError(data.message);
+        console.error('Analysis error:', data.message);
       }
     } catch (err) {
-      setError('Failed to fetch analysis');
-      console.error(err);
+      console.error('Failed to fetch analysis:', err);
     } finally {
       setAnalysisLoading(false);
     }
