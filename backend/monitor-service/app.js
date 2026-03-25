@@ -1,16 +1,14 @@
 let express = require('express'),
   mongoose = require('mongoose'),
-  cors = require('cors'),
-  bodyParser = require('body-parser'),
-  createError = require('http-errors');
+  cors = require('cors');
 
 const monitorApi = require('./routes/monitor.routes')
 const config = require("./config/config");
 const { getSecrets } = require("./config/keyvault");
 
 const app = express();
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({
+app.use(express.json());
+app.use(express.urlencoded({
   extended: true
 }));
 app.use(cors());
@@ -19,7 +17,9 @@ app.use('/monitor', monitorApi)
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
-  next(createError(404));
+  const err = new Error('Not Found');
+  err.status = 404;
+  next(err);
 });
   
 // error handler
@@ -39,10 +39,7 @@ async function startServer() {
     config.dbConnectionString = secrets.dbConnectionString;
 
     // MongoDB Configuration
-    mongoose.Promise = global.Promise;
-    await mongoose.connect(config.dbConnectionString, {
-      useNewUrlParser: true
-    });
+    await mongoose.connect(config.dbConnectionString);
     console.log('✓ Database successfully connected');
 
     const port = process.env.PORT || 4000;
