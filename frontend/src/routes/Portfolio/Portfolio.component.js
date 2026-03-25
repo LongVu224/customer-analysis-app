@@ -3,7 +3,7 @@ import {
   FiMail, FiGithub, FiLinkedin, FiMapPin,
   FiCode, FiDatabase, FiCloud, FiLayers, FiServer,
   FiBriefcase, FiAward, FiExternalLink, FiChevronDown, FiChevronUp,
-  FiMessageCircle, FiSend, FiX, FiBookOpen
+  FiMessageCircle, FiSend, FiX, FiBookOpen, FiUser, FiCheckCircle
 } from 'react-icons/fi';
 import { 
   Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, 
@@ -301,6 +301,166 @@ const ChatButton = ({ onClick, isOpen }) => (
     {isOpen ? <FiX /> : <FiMessageCircle />}
   </button>
 );
+
+// Contact Form Component
+// To use EmailJS, create a .env file in frontend/ with:
+// REACT_APP_EMAILJS_SERVICE_ID=your_service_id
+// REACT_APP_EMAILJS_TEMPLATE_ID=your_template_id
+// REACT_APP_EMAILJS_PUBLIC_KEY=your_public_key
+const EMAILJS_SERVICE_ID = process.env.REACT_APP_EMAILJS_SERVICE_ID;
+const EMAILJS_TEMPLATE_ID = process.env.REACT_APP_EMAILJS_TEMPLATE_ID;
+const EMAILJS_PUBLIC_KEY = process.env.REACT_APP_EMAILJS_PUBLIC_KEY;
+
+const ContactForm = ({ recipientEmail }) => {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    subject: '',
+    message: ''
+  });
+  const [status, setStatus] = useState('idle'); // idle, sending, sent, error
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setStatus('sending');
+    
+    try {
+      // Dynamic import of EmailJS to avoid bundling if not configured
+      const emailjs = await import('@emailjs/browser');
+      
+      await emailjs.send(
+        EMAILJS_SERVICE_ID,
+        EMAILJS_TEMPLATE_ID,
+        {
+          from_name: formData.name,
+          from_email: formData.email,
+          subject: formData.subject,
+          message: formData.message,
+          to_email: recipientEmail,
+        },
+        EMAILJS_PUBLIC_KEY
+      );
+      
+      setStatus('sent');
+      setFormData({ name: '', email: '', subject: '', message: '' });
+      
+      // Reset to idle after showing success
+      setTimeout(() => setStatus('idle'), 3000);
+    } catch (error) {
+      console.error('EmailJS Error:', error);
+      setStatus('error');
+      
+      // Reset to idle after showing error
+      setTimeout(() => setStatus('idle'), 4000);
+    }
+  };
+
+  return (
+    <form className="contact-form" onSubmit={handleSubmit}>
+      <div className="contact-form__header">
+        <div className="contact-form__dots">
+          <span className="dot dot--yellow"></span>
+          <span className="dot dot--green"></span>
+        </div>
+        <span className="contact-form__title">send-message.sh</span>
+      </div>
+      
+      <div className="contact-form__body">
+        <div className="contact-form__row">
+          <div className="contact-form__field">
+            <label>
+              <FiUser />
+              <span>Your Name</span>
+            </label>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              placeholder="John Doe"
+              required
+            />
+          </div>
+          <div className="contact-form__field">
+            <label>
+              <FiMail />
+              <span>Your Email</span>
+            </label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="john@example.com"
+              required
+            />
+          </div>
+        </div>
+        
+        <div className="contact-form__field">
+          <label>
+            <FiMessageCircle />
+            <span>Subject</span>
+          </label>
+          <input
+            type="text"
+            name="subject"
+            value={formData.subject}
+            onChange={handleChange}
+            placeholder="Let's work together!"
+            required
+          />
+        </div>
+        
+        <div className="contact-form__field">
+          <label>
+            <FiCode />
+            <span>Message</span>
+          </label>
+          <textarea
+            name="message"
+            value={formData.message}
+            onChange={handleChange}
+            placeholder="Hi Long, I'd like to discuss..."
+            rows={5}
+            required
+          />
+        </div>
+        
+        <button 
+          type="submit" 
+          className={`contact-form__submit ${status === 'sent' ? 'contact-form__submit--success' : ''} ${status === 'error' ? 'contact-form__submit--error' : ''}`}
+          disabled={status === 'sending'}
+        >
+          {status === 'idle' && (
+            <>
+              <FiSend />
+              <span>Send Message</span>
+            </>
+          )}
+          {status === 'sending' && <span>Sending...</span>}
+          {status === 'sent' && (
+            <>
+              <FiCheckCircle />
+              <span>Message Sent!</span>
+            </>
+          )}
+          {status === 'error' && (
+            <>
+              <FiX />
+              <span>Failed - Try again</span>
+            </>
+          )}
+        </button>
+      </div>
+    </form>
+  );
+};
 
 // Interactive Code Terminal for Hero Section
 const CodeTerminal = () => {
@@ -865,6 +1025,11 @@ const Portfolio = () => {
                 <p>View my code</p>
               </div>
             </a>
+          </div>
+
+          <div className="contact-form-wrapper">
+            <h3 className="contact-form-title">Or send me a message directly</h3>
+            <ContactForm recipientEmail={contact.email} />
           </div>
         </div>
       </Section>

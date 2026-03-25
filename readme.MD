@@ -147,6 +147,15 @@ node app.js
   - Investment suggestions based on technical analysis
   - Watchlist management
   - Price trend charts (60 days)
+- **Portfolio Page:**
+  - Interactive hero section with code terminal animation
+  - Skills visualization with radar chart
+  - Experience timeline with expandable details
+  - Projects showcase with filtering
+  - Education section
+  - Certifications display
+  - Contact form with direct email (via EmailJS)
+  - AI-powered chatbot assistant
 - System monitoring dashboard
 - Service health checks
 
@@ -158,8 +167,28 @@ cd ..\frontend
 # Install dependencies
 npm install
 
-# Configure environment variables in `.env.development`
+# Configure environment variables
+# Copy .env.example to .env and fill in your values
+cp .env.example .env
+```
 
+#### Environment Variables
+
+Create a `.env` file in the `frontend/` directory with the following variables:
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `REACT_APP_EMAILJS_SERVICE_ID` | EmailJS service ID for contact form | For contact form |
+| `REACT_APP_EMAILJS_TEMPLATE_ID` | EmailJS template ID | For contact form |
+| `REACT_APP_EMAILJS_PUBLIC_KEY` | EmailJS public key | For contact form |
+
+**EmailJS Setup (for contact form):**
+1. Create a free account at [emailjs.com](https://www.emailjs.com/)
+2. Add an email service (Gmail, Outlook, etc.)
+3. Create an email template with variables: `{{from_name}}`, `{{from_email}}`, `{{subject}}`, `{{message}}`
+4. Copy your Service ID, Template ID, and Public Key to `.env`
+
+```powershell
 # Run development server
 npm start
 ```

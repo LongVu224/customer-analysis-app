@@ -1700,3 +1700,171 @@
     transform: translateY(0);
   }
 }
+
+// Contact Form Styles
+.contact-form-wrapper {
+  margin-top: 4rem;
+  text-align: center;
+}
+
+.contact-form-title {
+  font-size: 1.25rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+}
+
+.contact-form {
+  max-width: 600px;
+  margin: 0 auto;
+  background: linear-gradient(145deg, rgba(30, 30, 45, 0.95), rgba(20, 20, 35, 0.98));
+  border-radius: 1rem;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: rgba(0, 0, 0, 0.3);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  &__dots {
+    display: flex;
+    gap: 0.5rem;
+    
+    span {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      
+      &:nth-child(1) { background: #ff5f56; }
+      &:nth-child(2) { background: #ffbd2e; }
+      &:nth-child(3) { background: #27c93f; }
+    }
+  }
+  
+  &__title {
+    font-family: 'Fira Code', 'Consolas', monospace;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.6);
+  }
+  
+  &__body {
+    padding: 1.5rem;
+  }
+  
+  &__row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    
+    @media (max-width: 500px) {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  &__field {
+    text-align: left;
+    
+    &--full {
+      grid-column: 1 / -1;
+    }
+    
+    label {
+      display: block;
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 0.5rem;
+      font-family: 'Fira Code', 'Consolas', monospace;
+      
+      &::before {
+        content: '>';
+        color: #6366f1;
+        margin-right: 0.5rem;
+      }
+    }
+    
+    input,
+    textarea {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 0.5rem;
+      padding: 0.75rem 1rem;
+      color: white;
+      font-size: 0.9rem;
+      font-family: 'Fira Code', 'Consolas', monospace;
+      transition: all 0.2s ease;
+      box-sizing: border-box;
+      
+      &::placeholder {
+        color: rgba(255, 255, 255, 0.3);
+      }
+      
+      &:focus {
+        outline: none;
+        border-color: #6366f1;
+        box-shadow: 0 0 10px rgba(99, 102, 241, 0.2);
+      }
+    }
+    
+    textarea {
+      resize: vertical;
+      min-height: 120px;
+    }
+  }
+  
+  &__submit {
+    width: 100%;
+    padding: 1rem 2rem;
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    border: none;
+    border-radius: 0.5rem;
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    margin-top: 1rem;
+    font-family: inherit;
+    
+    &:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
+    }
+    
+    &:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+    
+    &--success {
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      
+      &:hover:not(:disabled) {
+        box-shadow: 0 10px 30px rgba(34, 197, 94, 0.4);
+      }
+    }
+    
+    &--error {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      
+      &:hover:not(:disabled) {
+        box-shadow: 0 10px 30px rgba(239, 68, 68, 0.4);
+      }
+    }
+    
+    svg {
+      font-size: 1.1rem;
+    }
+  }
+}
