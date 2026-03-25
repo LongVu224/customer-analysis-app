@@ -13,6 +13,11 @@ variables:
   dockerHubUsername: 'longvu224'
   # dockerHubPassword: Set as secret pipeline variable in Azure DevOps
   
+  # EmailJS configuration (set as pipeline variables in Azure DevOps)
+  # emailjsServiceId: Set as pipeline variable
+  # emailjsTemplateId: Set as pipeline variable
+  # emailjsPublicKey: Set as pipeline variable
+  
   # Container App names (must match Bicep outputs)
   uploadServiceAppName: '$(projectBaseName)-upload'
   insightsServiceAppName: '$(projectBaseName)-insights'
@@ -179,6 +184,9 @@ stages:
           --build-arg REACT_APP_INSIGHTS_SERVICE_ENDPOINT=https://$(insightsServiceFqdn) \
           --build-arg REACT_APP_MONITOR_SERVICE_ENDPOINT=https://$(monitorServiceFqdn) \
           --build-arg REACT_APP_STOCK_SERVICE_URL=https://$(investmentServiceFqdn) \
+          --build-arg REACT_APP_EMAILJS_SERVICE_ID=$(emailjsServiceId) \
+          --build-arg REACT_APP_EMAILJS_TEMPLATE_ID=$(emailjsTemplateId) \
+          --build-arg REACT_APP_EMAILJS_PUBLIC_KEY=$(emailjsPublicKey) \
           -t $(dockerHubUsername)/frontend:$(imageTag) \
           -t $(dockerHubUsername)/frontend:latest .
         docker push $(dockerHubUsername)/frontend:$(imageTag)

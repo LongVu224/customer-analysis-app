@@ -260,6 +260,10 @@ The pipeline (`infrastructure/pipeline.yaml`) automates the full deployment:
 3. **Pipeline Secret Variable**: `dockerHubPassword` (Docker Hub Access Token)
 4. **Resource Group**: `sale-analysis-rg` (create beforehand)
 5. **Environment**: `sale-analysis` in Azure DevOps
+6. **Pipeline Variables (optional, for contact form)**:
+   - `emailjsServiceId` - EmailJS Service ID
+   - `emailjsTemplateId` - EmailJS Template ID
+   - `emailjsPublicKey` - EmailJS Public Key
 
 ### Deploy Infrastructure Manually
 
